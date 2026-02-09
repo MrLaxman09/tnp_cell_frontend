@@ -1,16 +1,13 @@
-import { useState } from "react";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  MapPin, 
-  Calendar, 
+import { useEffect, useState } from "react";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  MapPin,
+  Calendar,
   X,
   Pencil,
   Trash2,
-  Users,
-  Download
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,193 +37,134 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-const initialCompanies = [
-  { 
-    id: 1, 
-    name: "Microsoft", 
-    logo: "M", 
-    role: "Software Engineer", 
-    date: "2025-02-15", 
-    location: "Bangalore", 
-    openings: 25, 
-    cgpa: "8.5",
-    status: "Upcoming",
-  },
-  { 
-    id: 2, 
-    name: "Google", 
-    logo: "G", 
-    role: "Associate Product Manager", 
-    date: "2025-02-20", 
-    location: "Hyderabad", 
-    openings: 15, 
-    cgpa: "9.0",
-    status: "Upcoming",
-  },
-  { 
-    id: 3, 
-    name: "Amazon", 
-    logo: "A", 
-    role: "SDE I", 
-    date: "2025-02-25", 
-    location: "Multiple", 
-    openings: 40, 
-    cgpa: "8.0",
-    status: "Upcoming",
-  },
-  { 
-    id: 4, 
-    name: "Deloitte", 
-    logo: "D", 
-    role: "Business Analyst", 
-    date: "2025-03-01", 
-    location: "Mumbai", 
-    openings: 30, 
-    cgpa: "7.5",
-    status: "Registrations Open",
-  }
-];
-
-const mockApplicants = [
-  { id: 1, name: "Rahul Sharma", email: "rahul.s@university.edu", cgpa: "8.9", branch: "CSE", status: "Pending" },
-  { id: 2, name: "Priya Patel", email: "priya.p@university.edu", cgpa: "9.2", branch: "CSE", status: "Shortlisted" },
-  { id: 3, name: "Amit Kumar", email: "amit.k@university.edu", cgpa: "8.5", branch: "ECE", status: "Rejected" },
-  { id: 4, name: "Sneha Reddy", email: "sneha.r@university.edu", cgpa: "8.7", branch: "IT", status: "Pending" },
-  { id: 5, name: "Vikram Singh", email: "vikram.s@university.edu", cgpa: "9.0", branch: "CSE", status: "Shortlisted" },
-];
+import api from "@/api/axios";
 
 const AdminCompanies = () => {
-  const [companies, setCompanies] = useState(initialCompanies);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [companyToDelete, setCompanyToDelete] = useState(null);
-  const [viewingApplicants, setViewingApplicants] = useState(null);
+  const [search, setSearch] = useState("");
+
   const [formData, setFormData] = useState({
-    name: "",
-    photoUrl: "",
-    date: "",
-    cgpa: "",
+    companyName: "",
+    logoUrl: "",
+    arrivalDate: "",
+    cgpaRequired: "",
     role: "",
     openings: "",
     location: "",
-    jd: null
+    jdUrl: "",
   });
 
-  const handleSaveCompany = (e) => {
-    e.preventDefault();
-    if (editingId) {
-      setCompanies(companies.map(c => c.id === editingId ? {
-        ...c,
-        name: formData.name,
-        logo: formData.name.charAt(0),
-        role: formData.role,
-        date: formData.date,
-        location: formData.location,
-        openings: parseInt(formData.openings) || 0,
-        cgpa: formData.cgpa,
-      } : c));
-    } else {
-      const company = {
-        id: Date.now(),
-        name: formData.name,
-        logo: formData.name.charAt(0),
-        role: formData.role,
-        date: formData.date,
-        location: formData.location,
-        openings: parseInt(formData.openings) || 0,
-        cgpa: formData.cgpa,
-        status: "Upcoming",
-      };
-      setCompanies([...companies, company]);
+  // ===== FETCH COMPANIES =====
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await api.get("/companies");
+      setCompanies(res.data.companies || []);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+    } finally {
+      setLoading(false);
     }
-    setIsAddOpen(false);
+  };
+
+  // ===== OPEN ADD =====
+  const handleAddNew = () => {
     setEditingId(null);
     setFormData({
-      name: "",
-      photoUrl: "",
-      date: "",
-      cgpa: "",
+      companyName: "",
+      logoUrl: "",
+      arrivalDate: "",
+      cgpaRequired: "",
       role: "",
       openings: "",
       location: "",
-      jd: null
+      jdUrl: "",
     });
+    setIsAddOpen(true);
   };
 
+  // ===== OPEN EDIT =====
   const handleEditClick = (company) => {
+    setEditingId(company._id);
     setFormData({
-      name: company.name,
-      photoUrl: "",
-      date: company.date,
-      cgpa: company.cgpa,
+      companyName: company.companyName,
+      logoUrl: company.logoUrl || "",
+      arrivalDate: company.arrivalDate?.slice(0, 10),
+      cgpaRequired: company.cgpaRequired,
       role: company.role,
       openings: company.openings,
       location: company.location,
-      jd: null
+      jdUrl: company.jdUrl || "",
     });
-    setEditingId(company.id);
     setIsAddOpen(true);
   };
 
-  const handleAddNew = () => {
-    setFormData({
-      name: "",
-      photoUrl: "",
-      date: "",
-      cgpa: "",
-      role: "",
-      openings: "",
-      location: "",
-      jd: null
-    });
-    setEditingId(null);
-    setIsAddOpen(true);
+  // ===== CREATE / UPDATE =====
+  const handleSaveCompany = async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      companyName: formData.companyName,
+      logoUrl: formData.logoUrl,
+      arrivalDate: formData.arrivalDate,
+      cgpaRequired: Number(formData.cgpaRequired),
+      role: formData.role,
+      openings: Number(formData.openings),
+      location: formData.location,
+      jdUrl: formData.jdUrl,
+      registeredCount: 0,
+    };
+
+    try {
+      if (editingId) {
+        await api.put(`/companies/${editingId}`, payload);
+      } else {
+        await api.post("/companies", payload);
+      }
+
+      setIsAddOpen(false);
+      fetchCompanies();
+    } catch (error) {
+      console.error("Error saving company:", error);
+      alert("Failed to save company. Check backend.");
+    }
   };
 
-  const handleConfirmDelete = () => {
-    if (companyToDelete) {
-      setCompanies(companies.filter(c => c.id !== companyToDelete.id));
+  // ===== DELETE =====
+  const handleConfirmDelete = async () => {
+    if (!companyToDelete) return;
+
+    try {
+      await api.delete(`/companies/${companyToDelete._id}`);
       setCompanyToDelete(null);
+      fetchCompanies();
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      alert("Delete failed.");
     }
   };
 
-  const handleExportApplicants = () => {
-    const headers = ["Student Name", "Email", "CGPA", "Branch", "Status"];
-    const csvContent = [
-      headers.join(","),
-      ...mockApplicants.map(student => 
-        [student.name, student.email, student.cgpa, student.branch, student.status].map(field => 
-          `"${field}"`
-        ).join(",")
-      )
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `applicants_${viewingApplicants?.name || 'list'}.csv`);
-      link.style.visibility = "hidden";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
+  // ===== SEARCH FILTER =====
+  const filteredCompanies = companies.filter((c) =>
+    c.companyName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="p-6 lg:p-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Companies</h1>
-          <p className="text-muted-foreground">Manage recruitment drives and company details</p>
+          <h1 className="text-2xl font-bold">Companies</h1>
+          <p className="text-muted-foreground">
+            Manage recruitment drives (Live Backend Data)
+          </p>
         </div>
         <Button className="gap-2" onClick={handleAddNew}>
           <Plus className="w-4 h-4" />
@@ -234,253 +172,226 @@ const AdminCompanies = () => {
         </Button>
       </div>
 
-      <Card className="border border-border mb-6">
+      {/* SEARCH */}
+      <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search companies..." 
-                className="pl-10 h-10"
-              />
-            </div>
-            <Button variant="outline" className="gap-2">
-              <Filter className="w-4 h-4" />
-              Filters
-            </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search companies..."
+              className="pl-10 h-10"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border border-border">
+      {/* TABLE */}
+      <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Criteria</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {companies.map((company) => (
-                <TableRow key={company.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
-                        {company.logo}
-                      </div>
-                      <div>
-                        <div className="font-medium">{company.name}</div>
-                        <div className="text-xs text-muted-foreground">{company.openings} Openings</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{company.role}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-3 h-3" />
-                      {company.date}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
-                      {company.location}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{company.cgpa} CGPA</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={company.status === "Upcoming" ? "secondary" : "default"}>
-                      {company.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewingApplicants(company)}>
-                          <Users className="w-4 h-4 mr-2" />
-                          View Applicants
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditClick(company)}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setCompanyToDelete(company)} className="text-destructive">
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {loading ? (
+            <div className="p-6 text-center">Loading...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Company</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Criteria</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+
+              <TableBody>
+                {filteredCompanies.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-6">
+                      No companies found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCompanies.map((company) => (
+                    <TableRow key={company._id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
+                            {company.companyName.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-medium">
+                              {company.companyName}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {company.openings} Openings
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>{company.role}</TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(company.arrivalDate).toDateString()}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="w-3 h-3" />
+                          {company.location}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge variant="outline">
+                          {company.cgpaRequired} CGPA
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge variant="secondary">Upcoming</Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(company)}
+                            >
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setCompanyToDelete(company)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
+      {/* ADD / EDIT MODAL */}
       {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg p-4">
-            <Card className="border border-border shadow-lg max-h-[90vh] overflow-y-auto">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold">{editingId ? 'Edit Company' : 'Add New Company'}</CardTitle>
-                <Button variant="ghost" size="icon" onClick={() => setIsAddOpen(false)} className="h-8 w-8">
-                  <X className="w-4 h-4" />
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
+          <Card className="w-full max-w-lg p-4">
+            <CardHeader className="flex justify-between">
+              <CardTitle>
+                {editingId ? "Edit Company" : "Add Company"}
+              </CardTitle>
+              <Button variant="ghost" onClick={() => setIsAddOpen(false)}>
+                <X />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSaveCompany} className="space-y-3">
+                <Input
+                  placeholder="Company Name"
+                  value={formData.companyName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, companyName: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  type="date"
+                  value={formData.arrivalDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, arrivalDate: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="CGPA Required"
+                  value={formData.cgpaRequired}
+                  onChange={(e) =>
+                    setFormData({ ...formData, cgpaRequired: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Role"
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Openings"
+                  type="number"
+                  value={formData.openings}
+                  onChange={(e) =>
+                    setFormData({ ...formData, openings: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Location"
+                  value={formData.location}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
+                  required
+                />
+
+                <Button type="submit" className="w-full">
+                  {editingId ? "Update Company" : "Add Company"}
                 </Button>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <form onSubmit={handleSaveCompany} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Company Name</label>
-                    <Input 
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Company Logo URL</label>
-                    <Input 
-                      value={formData.photoUrl}
-                      onChange={(e) => setFormData({...formData, photoUrl: e.target.value})}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Date of Arrival</label>
-                      <Input 
-                        required
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">CGPA Required</label>
-                      <Input 
-                        required
-                        value={formData.cgpa}
-                        onChange={(e) => setFormData({...formData, cgpa: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Post / Role</label>
-                      <Input 
-                        required
-                        value={formData.role}
-                        onChange={(e) => setFormData({...formData, role: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">No. of Openings</label>
-                      <Input 
-                        required
-                        type="number"
-                        value={formData.openings}
-                        onChange={(e) => setFormData({...formData, openings: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Location</label>
-                    <Input 
-                      required
-                      value={formData.location}
-                      onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Job Description (JD)</label>
-                    <Input 
-                      required
-                      type="file"
-                      onChange={(e) => setFormData({...formData, jd: e.target.files[0]})}
-                    />
-                  </div>
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
-                    <Button type="submit">{editingId ? 'Save Changes' : 'Add Company'}</Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      <AlertDialog open={!!companyToDelete} onOpenChange={(open) => !open && setCompanyToDelete(null)}>
+      {/* DELETE CONFIRMATION */}
+      <AlertDialog
+        open={!!companyToDelete}
+        onOpenChange={(open) => !open && setCompanyToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the company
-              "{companyToDelete?.name}" and remove it from the list.
+              Delete "{companyToDelete?.companyName}" permanently?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Dialog open={!!viewingApplicants} onOpenChange={(open) => !open && setViewingApplicants(null)}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between pr-8">
-              <DialogTitle>Applicants for {viewingApplicants?.name}</DialogTitle>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleExportApplicants}>
-                <Download className="w-4 h-4" />
-                Export CSV
-              </Button>
-            </div>
-          </DialogHeader>
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Branch</TableHead>
-                  <TableHead>CGPA</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockApplicants.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">{student.name}</TableCell>
-                    <TableCell>{student.branch}</TableCell>
-                    <TableCell>{student.cgpa}</TableCell>
-                    <TableCell>{student.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={student.status === "Shortlisted" ? "default" : student.status === "Rejected" ? "destructive" : "secondary"}>
-                        {student.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

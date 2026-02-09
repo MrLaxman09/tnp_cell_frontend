@@ -1,144 +1,316 @@
- import { 
-   Search, 
-   Filter, 
-   Download, 
-   Plus,
-   MoreHorizontal,
-   Mail,
-   Phone
- } from "lucide-react";
- import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
- import { Button } from "@/components/ui/button";
- import { Input } from "@/components/ui/input";
- import {
-   Table,
-   TableBody,
-   TableCell,
-   TableHead,
-   TableHeader,
-   TableRow,
- } from "@/components/ui/table";
- import { Badge } from "@/components/ui/badge";
- import { Avatar, AvatarFallback } from "@/components/ui/avatar";
- 
- const students = [
-   { id: 1, name: "Rahul Sharma", email: "rahul.s@university.edu", phone: "+91 98765 43210", branch: "CSE", year: "Final", cgpa: "8.9", status: "Placed" },
-   { id: 2, name: "Priya Patel", email: "priya.p@university.edu", phone: "+91 98765 43211", branch: "CSE", year: "Final", cgpa: "9.2", status: "Placed" },
-   { id: 3, name: "Amit Kumar", email: "amit.k@university.edu", phone: "+91 98765 43212", branch: "ECE", year: "Final", cgpa: "8.5", status: "In Process" },
-   { id: 4, name: "Sneha Reddy", email: "sneha.r@university.edu", phone: "+91 98765 43213", branch: "IT", year: "Final", cgpa: "8.7", status: "Placed" },
-   { id: 5, name: "Vikram Singh", email: "vikram.s@university.edu", phone: "+91 98765 43214", branch: "CSE", year: "Final", cgpa: "9.0", status: "Placed" },
-   { id: 6, name: "Neha Gupta", email: "neha.g@university.edu", phone: "+91 98765 43215", branch: "ME", year: "Final", cgpa: "8.3", status: "Eligible" },
-   { id: 7, name: "Arjun Menon", email: "arjun.m@university.edu", phone: "+91 98765 43216", branch: "CSE", year: "Final", cgpa: "8.8", status: "In Process" },
-   { id: 8, name: "Kavita Nair", email: "kavita.n@university.edu", phone: "+91 98765 43217", branch: "ECE", year: "Final", cgpa: "9.1", status: "Placed" },
- ];
- 
- const getStatusVariant = (status) => {
-   switch (status) {
-     case "Placed": return "default";
-     case "In Process": return "secondary";
-     case "Eligible": return "outline";
-     default: return "secondary";
-   }
- };
- 
- const Students = () => {
-   return (
-     <div className="p-6 lg:p-8">
-       {/* Header */}
-       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-         <div>
-           <h1 className="text-2xl font-bold text-foreground">Students</h1>
-           <p className="text-muted-foreground">Manage student records and placement status</p>
-         </div>
-         <div className="flex items-center gap-3">
-           <Button variant="outline" className="gap-2">
-             <Download className="w-4 h-4" />
-             Export
-           </Button>
-           <Button className="gap-2">
-             <Plus className="w-4 h-4" />
-             Add Student
-           </Button>
-         </div>
-       </div>
- 
-       {/* Filters */}
-       <Card className="border border-border mb-6">
-         <CardContent className="p-4">
-           <div className="flex flex-col md:flex-row gap-4">
-             <div className="relative flex-1">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-               <Input 
-                 placeholder="Search students..." 
-                 className="pl-10 h-10"
-               />
-             </div>
-             <Button variant="outline" className="gap-2">
-               <Filter className="w-4 h-4" />
-               Filters
-             </Button>
-           </div>
-         </CardContent>
-       </Card>
- 
-       {/* Table */}
-       <Card className="border border-border">
-         <CardContent className="p-0">
-           <Table>
-             <TableHeader>
-               <TableRow>
-                 <TableHead>Student</TableHead>
-                 <TableHead>Contact</TableHead>
-                 <TableHead>Branch</TableHead>
-                 <TableHead>Year</TableHead>
-                 <TableHead>CGPA</TableHead>
-                 <TableHead>Status</TableHead>
-                 <TableHead className="w-10"></TableHead>
-               </TableRow>
-             </TableHeader>
-             <TableBody>
-               {students.map((student) => (
-                 <TableRow key={student.id}>
-                   <TableCell>
-                     <div className="flex items-center gap-3">
-                       <Avatar className="h-9 w-9">
-                         <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                           {student.name.split(' ').map(n => n[0]).join('')}
-                         </AvatarFallback>
-                       </Avatar>
-                       <div>
-                         <div className="font-medium">{student.name}</div>
-                         <div className="text-sm text-muted-foreground">{student.email}</div>
-                       </div>
-                     </div>
-                   </TableCell>
-                   <TableCell>
-                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                       <Phone className="w-3 h-3" />
-                       {student.phone}
-                     </div>
-                   </TableCell>
-                   <TableCell>{student.branch}</TableCell>
-                   <TableCell>{student.year}</TableCell>
-                   <TableCell className="font-semibold">{student.cgpa}</TableCell>
-                   <TableCell>
-                     <Badge variant={getStatusVariant(student.status)}>
-                       {student.status}
-                     </Badge>
-                   </TableCell>
-                   <TableCell>
-                     <Button variant="ghost" size="icon" className="h-8 w-8">
-                       <MoreHorizontal className="w-4 h-4" />
-                     </Button>
-                   </TableCell>
-                 </TableRow>
-               ))}
-             </TableBody>
-           </Table>
-         </CardContent>
-       </Card>
-     </div>
-   );
- };
- 
- export default Students;
+import { useEffect, useState } from "react";
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  X,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import api from "@/api/axios";
+
+const Students = () => {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    enrollmentNo: "",
+    course: "",
+    password: "",
+  });
+
+  // ===== FETCH STUDENTS =====
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      const res = await api.get("/students");
+      setStudents(res.data.students || []);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===== OPEN ADD MODAL =====
+  const handleAddClick = () => {
+    setEditingId(null);
+    setForm({
+      name: "",
+      email: "",
+      enrollmentNo: "",
+      course: "",
+      password: "",
+    });
+    setIsModalOpen(true);
+  };
+
+  // ===== OPEN EDIT MODAL =====
+  const handleEdit = (student) => {
+    setEditingId(student._id);
+    setForm({
+      name: student.name,
+      email: student.email,
+      enrollmentNo: student.enrollmentNo,
+      course: student.course,
+      password: "",
+    });
+    setIsModalOpen(true);
+  };
+
+  // ===== ADD / UPDATE STUDENT =====
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      if (editingId) {
+        // UPDATE
+        await api.put(`/students/${editingId}`, {
+          name: form.name,
+          email: form.email,
+          enrollmentNo: form.enrollmentNo,
+          course: form.course,
+        });
+      } else {
+        // CREATE (ADMIN ADD)
+        await api.post("/students", {
+          name: form.name,
+          email: form.email,
+          enrollmentNo: form.enrollmentNo,
+          course: form.course,
+          password: form.password || "student@123",
+        });
+      }
+
+      setIsModalOpen(false);
+      fetchStudents();
+    } catch (error) {
+      console.error("Error saving student:", error);
+      alert("Operation failed. Check backend.");
+    }
+  };
+
+  // ===== DELETE STUDENT =====
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this student?")) return;
+
+    try {
+      await api.delete(`/students/${id}`);
+      fetchStudents();
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      alert("Delete failed.");
+    }
+  };
+
+  // ===== SEARCH FILTER =====
+  const filteredStudents = students.filter(
+    (s) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.email.toLowerCase().includes(search.toLowerCase()) ||
+      (s.enrollmentNo || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="p-6 lg:p-8">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold">Students</h1>
+          <p className="text-muted-foreground">
+            Manage real registered students
+          </p>
+        </div>
+        <Button className="gap-2" onClick={handleAddClick}>
+          <Plus className="w-4 h-4" />
+          Add Student
+        </Button>
+      </div>
+
+      {/* SEARCH */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search students..."
+              className="pl-10 h-10"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* TABLE */}
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-6 text-center">Loading...</div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Enrollment No.</TableHead>
+                  <TableHead>Course</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-6">
+                      No students found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredStudents.map((student) => (
+                    <TableRow key={student._id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback>
+                              {student.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="font-medium">{student.name}</div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>{student.email}</TableCell>
+                      <TableCell>{student.enrollmentNo}</TableCell>
+                      <TableCell>{student.course}</TableCell>
+                      <TableCell>
+                        {new Date(student.createdAt).toDateString()}
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(student)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500"
+                            onClick={() => handleDelete(student._id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ADD / EDIT MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
+          <Card className="w-full max-w-md p-4">
+            <CardHeader className="flex justify-between">
+              <CardTitle>
+                {editingId ? "Edit Student" : "Add Student"}
+              </CardTitle>
+              <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+                <X />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <Input
+                  placeholder="Name"
+                  value={form.name}
+                  onChange={(e) =>
+                    setForm({ ...form, name: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) =>
+                    setForm({ ...form, email: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Enrollment No"
+                  value={form.enrollmentNo}
+                  onChange={(e) =>
+                    setForm({ ...form, enrollmentNo: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Course"
+                  value={form.course}
+                  onChange={(e) =>
+                    setForm({ ...form, course: e.target.value })
+                  }
+                  required
+                />
+
+                {!editingId && (
+                  <Input
+                    placeholder="Temporary Password (optional)"
+                    type="password"
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                  />
+                )}
+
+                <Button type="submit" className="w-full">
+                  {editingId ? "Update Student" : "Add Student"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Students;

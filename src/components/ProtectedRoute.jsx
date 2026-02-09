@@ -1,19 +1,43 @@
-import { useAuth } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import api from "@/api/axios";
 
-const ProtectedRoute = () => {
-  const { isSignedIn, isLoaded } = useAuth();
+const ProtectedRoute = ({ allowedRoles = [] }) => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!isLoaded) {
-    // You can return a loading spinner here
-    return <div>Loading...</div>;
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await api.get("/auth/me", { withCredentials: true });
+        setUser(res.data.user);
+      } catch {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="text-center mt-10 text-muted-foreground">
+        Checking authentication...
+      </div>
+    );
   }
 
-  if (!isSignedIn) {
-    return <Navigate to="/login" />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  if (allowedRoles.length && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet context={{ user }} />;
 };
 
 export default ProtectedRoute;
