@@ -11,7 +11,7 @@ const Contact = () => {
     name: "",
     email: "",
     subject: "",
-    message: ""
+    message: "",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,9 +33,9 @@ const Contact = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
@@ -44,34 +44,51 @@ const Contact = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Message sent!",
-      description: "We'll get back to you as soon as possible.",
-    });
-    
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: ""
-    });
-    setIsSubmitting(false);
+
+    try {
+      await fetch("http://localhost:5000/api/contacts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      toast({
+        title: "Message sent!",
+        description: "We'll get back to you as soon as possible.",
+      });
+
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <section id="contact" className="py-24 bg-background">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <span className="text-accent font-medium text-sm uppercase tracking-wider">Get in Touch</span>
+          <span className="text-accent font-medium text-sm uppercase tracking-wider">
+            Get in Touch
+          </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-3 mb-4">
             Contact Us
           </h2>
           <p className="text-muted-foreground text-lg">
-            Have questions about placements or training programs? Reach out to us.
+            Have questions about placements or training programs? Reach out to
+            us.
           </p>
         </div>
 
@@ -85,7 +102,8 @@ const Contact = () => {
               <div>
                 <h3 className="font-semibold text-lg mb-1">Visit Us</h3>
                 <p className="text-muted-foreground">
-                  RKDF University Campus,<br />
+                  RKDF University Campus,
+                  <br />
                   Academic Block B, Training & Placement Cell
                 </p>
               </div>
@@ -97,7 +115,9 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-semibold text-lg mb-1">Email Us</h3>
-                <p className="text-muted-foreground">placement@RKDFuniversity.edu</p>
+                <p className="text-muted-foreground">
+                  placement@RKDFuniversity.edu
+                </p>
                 <p className="text-muted-foreground">tpo@RKDFuniversity.edu</p>
               </div>
             </div>
@@ -119,56 +139,92 @@ const Contact = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label htmlFor="name" className="text-sm font-medium">Name</label>
-                  <Input 
-                    id="name" 
-                    name="name" 
-                    placeholder="Your name" 
+                  <label htmlFor="name" className="text-sm font-medium">
+                    Name
+                  </label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="Your name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={errors.name ? "border-destructive focus-visible:ring-destructive" : ""}
+                    className={
+                      errors.name
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : ""
+                    }
                   />
-                  {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
+                  {errors.name && (
+                    <p className="text-xs text-destructive mt-1">
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">Email</label>
-                  <Input 
-                    id="email" 
-                    name="email" 
-                    type="email" 
-                    placeholder="your@email.com" 
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="your@email.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                    className={
+                      errors.email
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : ""
+                    }
                   />
-                  {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
+                  {errors.email && (
+                    <p className="text-xs text-destructive mt-1">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="subject" className="text-sm font-medium">Subject</label>
-                <Input 
-                  id="subject" 
-                  name="subject" 
-                  placeholder="How can we help?" 
-                  value={formData.subject}
-                  onChange={handleChange}
-                  className={errors.subject ? "border-destructive focus-visible:ring-destructive" : ""}
-                />
-                {errors.subject && <p className="text-xs text-destructive mt-1">{errors.subject}</p>}
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="message" className="text-sm font-medium">Message</label>
-                <Textarea 
-                  id="message" 
-                  name="message" 
-                  placeholder="Your message..." 
+                <label htmlFor="subject" className="text-sm font-medium">
+                  Subject
+                </label>
+                <Input
+                  id="subject"
+                  name="subject"
+                  placeholder="How can we help?"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  className={
+                    errors.subject
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : ""
+                  }
+                />
+                {errors.subject && (
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.subject}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="message" className="text-sm font-medium">
+                  Message
+                </label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  placeholder="Your message..."
                   className={`min-h-[150px] ${errors.message ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   value={formData.message}
                   onChange={handleChange}
                 />
-                {errors.message && <p className="text-xs text-destructive mt-1">{errors.message}</p>}
+                {errors.message && (
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.message}
+                  </p>
+                )}
               </div>
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>

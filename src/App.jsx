@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import { AuthProvider } from "@/context/AuthContext";   // ✅ IMPORTANT
+import { AuthProvider } from "@/context/AuthContext";
 
 import Index from "./pages/Index";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -27,11 +27,14 @@ import AdminReports from "./pages/admin/Reports";
 import { AdminSettings } from "./pages/admin/ComingSoon";
 import Applications from "@/pages/admin/Applications";
 
+// ✅ IMPORTANT: Correct path for new file
+import AdminHighlights from "./pages/admin/Highlights";
+
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>   {/* ✅ WRAP ENTIRE APP HERE */}
+    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -61,6 +64,9 @@ const App = () => (
                 <Route path="reports" element={<AdminReports />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="applications" element={<Applications />} />
+
+                {/* ✅ NEW HIGHLIGHTS ADMIN PAGE */}
+                <Route path="highlights" element={<AdminHighlights />} />
               </Route>
             </Route>
 

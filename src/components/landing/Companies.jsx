@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2, Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import api from "@/api/axios";
 
@@ -63,58 +63,73 @@ const Companies = () => {
               No companies available right now.
             </p>
           ) : (
-            companies.map((company) => (
-              <div
-                key={company._id}
-                className="group bg-card rounded-2xl p-6 border border-border card-hover"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
-                      {company.companyName.charAt(0)}
+            companies.map((company) => {
+              const companyName = company.name || "Unknown Company";
+
+              return (
+                <div
+                  key={company._id}
+                  className="group bg-card rounded-2xl p-6 border border-border card-hover"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      {company.logo ? (
+                        <img
+                          src={company.logo}
+                          alt={companyName}
+                          className="w-12 h-12 rounded-xl object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+                          {companyName.charAt(0)}
+                        </div>
+                      )}
+
+                      <div>
+                        <h3 className="font-semibold text-foreground">
+                          {companyName}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {company.role || "Role not specified"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">
-                        {company.companyName}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {company.role}
-                      </p>
+
+                    <Badge variant="secondary">
+                      {company.status || "Upcoming"}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>{company.visitDate || "TBA"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      <span>{company.location || "TBA"}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      <span>{company.posts || 0} Posts</span>
                     </div>
                   </div>
 
-                  <Badge variant="secondary">
-                    Upcoming
-                  </Badge>
-                </div>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {new Date(company.arrivalDate).toDateString()}
+                  <div className="pt-4 border-t border-border flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Package
+                    </span>
+                    <span className="font-semibold text-accent">
+                      {company.package
+                        ? `${company.package} LPA`
+                        : "N/A"}
                     </span>
                   </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{company.location}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="w-4 h-4" />
-                    <span>{company.openings} openings</span>
-                  </div>
                 </div>
-
-                <div className="pt-4 border-t border-border flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">CGPA Required</span>
-                  <span className="font-semibold text-accent">
-                    {company.cgpaRequired}
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

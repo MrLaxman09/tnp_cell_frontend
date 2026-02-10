@@ -39,6 +39,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import api from "@/api/axios";
 
+const JOB_TYPE_OPTIONS = ["Full-time", "Internship", "Part-time", "Contract"];
+
+// ✅ SAFE HELPER FUNCTION (NEW FIX)
+const getFirstLetter = (text) => {
+  if (!text || typeof text !== "string") return "?";
+  return text.trim().charAt(0).toUpperCase() || "?";
+};
+
 const AdminCompanies = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,14 +57,19 @@ const AdminCompanies = () => {
   const [search, setSearch] = useState("");
 
   const [formData, setFormData] = useState({
-    companyName: "",
-    logoUrl: "",
-    arrivalDate: "",
-    cgpaRequired: "",
+    name: "",
+    logo: "",
+    package: "",
+    visitDate: "",
+    lastDateToApply: "",
+    posts: "",
     role: "",
-    openings: "",
+    jobType: "Full-time",
     location: "",
-    jdUrl: "",
+    eligibility: "",
+    status: "Upcoming",
+    skills: "",
+    jobDescription: "",
   });
 
   // ===== FETCH COMPANIES =====
@@ -79,14 +92,19 @@ const AdminCompanies = () => {
   const handleAddNew = () => {
     setEditingId(null);
     setFormData({
-      companyName: "",
-      logoUrl: "",
-      arrivalDate: "",
-      cgpaRequired: "",
+      name: "",
+      logo: "",
+      package: "",
+      visitDate: "",
+      lastDateToApply: "",
+      posts: "",
       role: "",
-      openings: "",
+      jobType: "Full-time",
       location: "",
-      jdUrl: "",
+      eligibility: "",
+      status: "Upcoming",
+      skills: "",
+      jobDescription: "",
     });
     setIsAddOpen(true);
   };
@@ -95,14 +113,19 @@ const AdminCompanies = () => {
   const handleEditClick = (company) => {
     setEditingId(company._id);
     setFormData({
-      companyName: company.companyName,
-      logoUrl: company.logoUrl || "",
-      arrivalDate: company.arrivalDate?.slice(0, 10),
-      cgpaRequired: company.cgpaRequired,
-      role: company.role,
-      openings: company.openings,
-      location: company.location,
-      jdUrl: company.jdUrl || "",
+      name: company.name || "",
+      logo: company.logo || "",
+      package: company.package || "",
+      visitDate: company.visitDate || "",
+      lastDateToApply: company.lastDateToApply || "",
+      posts: company.posts || "",
+      role: company.role || "",
+      jobType: company.jobType || "Full-time",
+      location: company.location || "",
+      eligibility: company.eligibility || "",
+      status: company.status || "Upcoming",
+      skills: company.skills?.join(", ") || "",
+      jobDescription: company.jobDescription || "",
     });
     setIsAddOpen(true);
   };
@@ -112,15 +135,22 @@ const AdminCompanies = () => {
     e.preventDefault();
 
     const payload = {
-      companyName: formData.companyName,
-      logoUrl: formData.logoUrl,
-      arrivalDate: formData.arrivalDate,
-      cgpaRequired: Number(formData.cgpaRequired),
+      name: formData.name,
+      logo: formData.logo,
+      package: formData.package,
+      visitDate: formData.visitDate,
+      lastDateToApply: formData.lastDateToApply,
+      posts: Number(formData.posts),
       role: formData.role,
-      openings: Number(formData.openings),
+      jobType: formData.jobType,
       location: formData.location,
-      jdUrl: formData.jdUrl,
-      registeredCount: 0,
+      eligibility: formData.eligibility,
+      status: formData.status,
+      skills: formData.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      jobDescription: formData.jobDescription,
     };
 
     try {
@@ -152,9 +182,9 @@ const AdminCompanies = () => {
     }
   };
 
-  // ===== SEARCH FILTER =====
+  // ✅ SAFE FILTER (NO CRASH)
   const filteredCompanies = companies.filter((c) =>
-    c.companyName.toLowerCase().includes(search.toLowerCase())
+    (c.name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -198,9 +228,9 @@ const AdminCompanies = () => {
                 <TableRow>
                   <TableHead>Company</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Visit Date</TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>Criteria</TableHead>
+                  <TableHead>Posts</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -218,44 +248,50 @@ const AdminCompanies = () => {
                     <TableRow key={company._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
-                            {company.companyName.charAt(0)}
-                          </div>
+                          {company.logo ? (
+                            <img
+                              src={company.logo}
+                              alt={company.name}
+                              className="w-10 h-10 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
+                              {getFirstLetter(company.name)}
+                            </div>
+                          )}
                           <div>
                             <div className="font-medium">
-                              {company.companyName}
+                              {company.name || "N/A"}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              {company.openings} Openings
+                              {company.posts || 0} Posts
                             </div>
                           </div>
                         </div>
                       </TableCell>
 
-                      <TableCell>{company.role}</TableCell>
+                      <TableCell>{company.role || "—"}</TableCell>
 
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="w-3 h-3" />
-                          {new Date(company.arrivalDate).toDateString()}
+                          {company.visitDate || "—"}
                         </div>
                       </TableCell>
 
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <MapPin className="w-3 h-3" />
-                          {company.location}
+                          {company.location || "—"}
                         </div>
                       </TableCell>
 
-                      <TableCell>
-                        <Badge variant="outline">
-                          {company.cgpaRequired} CGPA
-                        </Badge>
-                      </TableCell>
+                      <TableCell>{company.posts || 0}</TableCell>
 
                       <TableCell>
-                        <Badge variant="secondary">Upcoming</Badge>
+                        <Badge variant="secondary">
+                          {company.status || "Upcoming"}
+                        </Badge>
                       </TableCell>
 
                       <TableCell>
@@ -307,27 +343,58 @@ const AdminCompanies = () => {
               <form onSubmit={handleSaveCompany} className="space-y-3">
                 <Input
                   placeholder="Company Name"
-                  value={formData.companyName}
+                  value={formData.name}
                   onChange={(e) =>
-                    setFormData({ ...formData, companyName: e.target.value })
+                    setFormData({ ...formData, name: e.target.value })
                   }
                   required
                 />
 
                 <Input
-                  type="date"
-                  value={formData.arrivalDate}
+                  placeholder="Logo URL"
+                  value={formData.logo}
                   onChange={(e) =>
-                    setFormData({ ...formData, arrivalDate: e.target.value })
+                    setFormData({ ...formData, logo: e.target.value })
                   }
                   required
                 />
 
                 <Input
-                  placeholder="CGPA Required"
-                  value={formData.cgpaRequired}
+                  placeholder="Package (e.g. 3.5 LPA)"
+                  value={formData.package}
                   onChange={(e) =>
-                    setFormData({ ...formData, cgpaRequired: e.target.value })
+                    setFormData({ ...formData, package: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Visit Date (e.g. 20 Feb 2026)"
+                  value={formData.visitDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, visitDate: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Last Date to Apply"
+                  value={formData.lastDateToApply}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      lastDateToApply: e.target.value,
+                    })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Posts"
+                  type="number"
+                  value={formData.posts}
+                  onChange={(e) =>
+                    setFormData({ ...formData, posts: e.target.value })
                   }
                   required
                 />
@@ -341,21 +408,67 @@ const AdminCompanies = () => {
                   required
                 />
 
-                <Input
-                  placeholder="Openings"
-                  type="number"
-                  value={formData.openings}
+                <select
+                  className="w-full border rounded p-2"
+                  value={formData.jobType}
                   onChange={(e) =>
-                    setFormData({ ...formData, openings: e.target.value })
+                    setFormData({ ...formData, jobType: e.target.value })
                   }
-                  required
-                />
+                >
+                  {JOB_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
 
                 <Input
                   placeholder="Location"
                   value={formData.location}
                   onChange={(e) =>
                     setFormData({ ...formData, location: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Eligibility"
+                  value={formData.eligibility}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      eligibility: e.target.value,
+                    })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Status (Upcoming/Ongoing/Done)"
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Skills (comma separated)"
+                  value={formData.skills}
+                  onChange={(e) =>
+                    setFormData({ ...formData, skills: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Job Description"
+                  value={formData.jobDescription}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      jobDescription: e.target.value,
+                    })
                   }
                   required
                 />
@@ -378,7 +491,7 @@ const AdminCompanies = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Delete "{companyToDelete?.companyName}" permanently?
+              Delete "{companyToDelete?.name}" permanently?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

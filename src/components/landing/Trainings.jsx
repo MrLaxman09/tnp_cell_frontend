@@ -70,45 +70,50 @@ const Trainings = () => {
           </p>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            {trainings.map((training) => (
-              <div
-                key={training._id}
-                className="group glass-card rounded-2xl p-6 card-hover flex flex-col"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-primary" />
+            {trainings.map((training) => {
+              const startDate = training.date
+                ? new Date(training.date).toDateString()
+                : "TBA";
+
+              return (
+                <div
+                  key={training._id}
+                  className="group glass-card rounded-2xl p-6 card-hover flex flex-col"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <BookOpen className="w-6 h-6 text-primary" />
+                    </div>
+                    <span className="text-xs font-medium px-3 py-1 rounded-full bg-accent/10 text-accent">
+                      {training.status || "Upcoming"}
+                    </span>
                   </div>
-                  <span className="text-xs font-medium px-3 py-1 rounded-full bg-accent/10 text-accent">
-                    {training.category || "Training"}
-                  </span>
+
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                    {training.title}
+                  </h3>
+
+                  <p className="text-muted-foreground text-sm mb-2">
+                    <b>Instructor:</b> {training.instructor}
+                  </p>
+
+                  <p className="text-muted-foreground text-sm mb-6">
+                    <b>Department:</b> {training.department}
+                  </p>
+
+                  <div className="flex items-center gap-6 pt-4 border-t border-border">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>{training.duration}</span>
+                    </div>
+
+                    <span className="ml-auto text-sm font-medium text-accent">
+                      Starts {startDate}
+                    </span>
+                  </div>
                 </div>
-
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  {training.title}
-                </h3>
-
-                <p className="text-muted-foreground text-sm mb-6 flex-grow">
-                  {training.description}
-                </p>
-
-                <div className="flex items-center gap-6 pt-4 border-t border-border">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>{training.duration}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="w-4 h-4" />
-                    <span>{training.participants || 0} enrolled</span>
-                  </div>
-
-                  <span className="ml-auto text-sm font-medium text-accent">
-                    Starts {new Date(training.startDate).toDateString()}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

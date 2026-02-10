@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button";
 import ApplyJobDialog from "./Applyjob";
 
 import {
-  BookOpen,
   Briefcase,
   Calendar,
   CheckCircle,
-  FileText,
   Search,
   User,
 } from "lucide-react";
@@ -71,6 +69,9 @@ const StudentDashboard = () => {
   const [companies, setCompanies] = useState([]);
   const [driveError, setDriveError] = useState("");
 
+  // Store only applied company IDs
+  const [appliedCompanies, setAppliedCompanies] = useState([]);
+
   const navigate = useNavigate();
 
   // ===== FETCH LOGGED-IN USER =====
@@ -89,7 +90,7 @@ const StudentDashboard = () => {
     fetchUser();
   }, []);
 
-  // ===== FETCH REAL COMPANIES FROM BACKEND =====
+  // ===== FETCH COMPANIES =====
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
@@ -107,6 +108,29 @@ const StudentDashboard = () => {
     };
 
     fetchCompanies();
+  }, []);
+
+  // ===== FETCH STUDENT APPLICATIONS =====
+  useEffect(() => {
+    const fetchMyApplications = async () => {
+      try {
+        const res = await api.get("/applications/my", {
+          withCredentials: true,
+        });
+
+        const appliedIds = res.data.applications.map((app) =>
+          typeof app.companyId === "string"
+            ? app.companyId
+            : app.companyId?._id
+        );
+
+        setAppliedCompanies(appliedIds);
+      } catch (error) {
+        console.error("Failed to fetch my applications:", error);
+      }
+    };
+
+    fetchMyApplications();
   }, []);
 
   if (loading) {
@@ -139,7 +163,7 @@ const StudentDashboard = () => {
           </Button>
         </div>
 
-        {/* Stats Grid (UNCHANGED) */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat) => (
             <Card key={stat.title} className="border border-border">
@@ -168,7 +192,7 @@ const StudentDashboard = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Column */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Upcoming Drives (NOW FROM BACKEND) */}
+            {/* Upcoming Drives */}
             <Card className="border border-border">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl">Upcoming Drives</CardTitle>
@@ -188,46 +212,64 @@ const StudentDashboard = () => {
                   </p>
                 )}
 
-                {companies.map((company) => (
-                  <div
-                    key={company._id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 gap-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center border border-border shrink-0">
-                        <span className="font-bold text-lg">
-                          {company.companyName.charAt(0)}
-                        </span>
+                {companies.map((company) => {
+                  const companyName =
+                    company.companyName || company.name || "Unknown Company";
+
+                  const arrivalDate = company.arrivalDate
+                    ? new Date(company.arrivalDate).toDateString()
+                    : "TBA";
+
+                  const isApplied = appliedCompanies.includes(company._id);
+
+                  return (
+                    <div
+                      key={company._id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border/50 gap-4"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center border border-border shrink-0">
+                          <span className="font-bold text-lg">
+                            {companyName.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{companyName}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {company.role || "Role TBA"} • {arrivalDate}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold">
-                          {company.companyName}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {company.role} •{" "}
-                          {new Date(company.arrivalDate).toDateString()}
-                        </p>
+
+                      <div className="flex items-center gap-3 self-end sm:self-auto">
+                        {isApplied ? (
+                          <>
+                            <Badge variant="secondary">Applied</Badge>
+                            <Button size="sm" variant="outline">
+                              View Details
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Badge variant="default">Eligible</Badge>
+                            <ApplyJobDialog
+                              job={{
+                                _id: company._id,
+                                company: companyName,
+                                role: company.role,
+                                date: company.arrivalDate,
+                              }}
+                            />
+                          </>
+                        )}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-3 self-end sm:self-auto">
-                      <Badge variant="default">Eligible</Badge>
-
-                      <ApplyJobDialog
-                        job={{
-                          _id: company._id,
-                          company: company.companyName,
-                          role: company.role,
-                          date: company.arrivalDate,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
 
-            {/* Recent Applications (UNCHANGED) */}
+            {/* Recent Applications */}
             <Card className="border border-border">
               <CardHeader>
                 <CardTitle className="text-xl">
@@ -273,7 +315,6 @@ const StudentDashboard = () => {
 
           {/* Sidebar Column */}
           <div className="space-y-8">
-            {/* Profile Summary (UNCHANGED) */}
             <Card className="border border-border">
               <CardHeader>
                 <CardTitle className="text-xl">My Profile</CardTitle>

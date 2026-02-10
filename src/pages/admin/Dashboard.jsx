@@ -6,23 +6,16 @@ import {
   TrendingUp,
   Plus,
   X,
-  Download,
   Pencil,
   Trash2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import api from "@/api/axios";
+
+const JOB_TYPE_OPTIONS = ["Full-time", "Internship", "Part-time", "Contract"];
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -41,14 +34,19 @@ const AdminDashboard = () => {
   const [editingDriveId, setEditingDriveId] = useState(null);
 
   const [newDrive, setNewDrive] = useState({
-    companyName: "",
-    logoUrl: "",
-    arrivalDate: "",
-    cgpaRequired: "",
+    name: "",
+    logo: "",
+    package: "",
+    visitDate: "",
+    lastDateToApply: "",
+    posts: "",
     role: "",
-    openings: "",
+    jobType: "Full-time",
     location: "",
-    jdUrl: "",
+    eligibility: "",
+    status: "Upcoming",
+    skills: "",
+    jobDescription: "",
   });
 
   const [newPlacement, setNewPlacement] = useState({
@@ -57,6 +55,9 @@ const AdminDashboard = () => {
     company: "",
     package: "",
     year: "",
+    role: "",
+    location: "",
+    photo: "",
     status: "Confirmed",
   });
 
@@ -91,7 +92,7 @@ const AdminDashboard = () => {
   const fetchCompanies = async () => {
     try {
       const res = await api.get("/companies");
-      setDrives(res.data.companies);
+      setDrives(res.data.companies || []);
     } catch (error) {
       console.error("Error fetching companies:", error);
     }
@@ -110,14 +111,19 @@ const AdminDashboard = () => {
   const handleOpenAddDrive = () => {
     setEditingDriveId(null);
     setNewDrive({
-      companyName: "",
-      logoUrl: "",
-      arrivalDate: "",
-      cgpaRequired: "",
+      name: "",
+      logo: "",
+      package: "",
+      visitDate: "",
+      lastDateToApply: "",
+      posts: "",
       role: "",
-      openings: "",
+      jobType: "Full-time",
       location: "",
-      jdUrl: "",
+      eligibility: "",
+      status: "Upcoming",
+      skills: "",
+      jobDescription: "",
     });
     setIsAddDriveOpen(true);
   };
@@ -126,14 +132,19 @@ const AdminDashboard = () => {
   const handleEditDrive = (drive) => {
     setEditingDriveId(drive._id);
     setNewDrive({
-      companyName: drive.companyName,
-      logoUrl: drive.logoUrl || "",
-      arrivalDate: drive.arrivalDate?.slice(0, 10),
-      cgpaRequired: drive.cgpaRequired,
-      role: drive.role,
-      openings: drive.openings,
-      location: drive.location,
-      jdUrl: drive.jdUrl || "",
+      name: drive.name || "",
+      logo: drive.logo || "",
+      package: drive.package || "",
+      visitDate: drive.visitDate || "",
+      lastDateToApply: drive.lastDateToApply || "",
+      posts: drive.posts || "",
+      role: drive.role || "",
+      jobType: drive.jobType || "Full-time",
+      location: drive.location || "",
+      eligibility: drive.eligibility || "",
+      status: drive.status || "Upcoming",
+      skills: drive.skills?.join(", ") || "",
+      jobDescription: drive.jobDescription || "",
     });
     setIsAddDriveOpen(true);
   };
@@ -143,15 +154,22 @@ const AdminDashboard = () => {
     e.preventDefault();
 
     const payload = {
-      companyName: newDrive.companyName,
-      logoUrl: newDrive.logoUrl,
-      arrivalDate: newDrive.arrivalDate,
-      cgpaRequired: Number(newDrive.cgpaRequired),
+      name: newDrive.name,
+      logo: newDrive.logo,
+      package: newDrive.package,
+      visitDate: newDrive.visitDate,
+      lastDateToApply: newDrive.lastDateToApply,
+      posts: Number(newDrive.posts),
       role: newDrive.role,
-      openings: Number(newDrive.openings),
+      jobType: newDrive.jobType,
       location: newDrive.location,
-      jdUrl: newDrive.jdUrl,
-      registeredCount: 0,
+      eligibility: newDrive.eligibility,
+      status: newDrive.status,
+      skills: newDrive.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      jobDescription: newDrive.jobDescription,
     };
 
     try {
@@ -184,7 +202,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // ===== ADD PLACEMENT =====
+  // ===== ADD PLACEMENT (NOW WORKING) =====
   const handleAddPlacement = async (e) => {
     e.preventDefault();
 
@@ -194,6 +212,9 @@ const AdminDashboard = () => {
       company: newPlacement.company,
       package: Number(newPlacement.package),
       year: Number(newPlacement.year),
+      role: newPlacement.role,
+      location: newPlacement.location,
+      photo: newPlacement.photo,
       status: "Confirmed",
     };
 
@@ -210,6 +231,9 @@ const AdminDashboard = () => {
         company: "",
         package: "",
         year: "",
+        role: "",
+        location: "",
+        photo: "",
         status: "Confirmed",
       });
     } catch (error) {
@@ -230,21 +254,9 @@ const AdminDashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {[
-          {
-            title: "Total Students",
-            value: stats.students,
-            icon: Users,
-          },
-          {
-            title: "Active Companies",
-            value: stats.companies,
-            icon: Building2,
-          },
-          {
-            title: "Placements",
-            value: stats.placements,
-            icon: Briefcase,
-          },
+          { title: "Total Students", value: stats.students, icon: Users },
+          { title: "Active Companies", value: stats.companies, icon: Building2 },
+          { title: "Placements", value: stats.placements, icon: Briefcase },
           {
             title: "Avg. Package",
             value: `₹${stats.avgPackage.toFixed(1)} LPA`,
@@ -273,55 +285,63 @@ const AdminDashboard = () => {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row justify-between">
             <CardTitle>Recent Placements</CardTitle>
-            <Button size="sm" onClick={() => setIsAddPlacementOpen(true)}>
+            <Button
+              size="sm"
+              type="button"
+              onClick={() => setIsAddPlacementOpen(true)}
+            >
               + Add Placement
             </Button>
           </CardHeader>
 
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Package</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {placements.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6">
-                      No placements found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  placements.map((p) => (
-                    <TableRow key={p._id}>
-                      <TableCell>{p.studentName || "N/A"}</TableCell>
-                      <TableCell>{p.company || "N/A"}</TableCell>
-                      <TableCell>{p.package} LPA</TableCell>
-                      <TableCell>{p.year}</TableCell>
-                      <TableCell>
-                        <Badge>{p.status}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            {placements.length === 0 ? (
+              <div className="text-center py-6">No placements found</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {placements.slice(0, 4).map((p) => (
+                  <Card key={p._id} className="overflow-hidden">
+                    <img
+                      src={
+                        p.photo ||
+                        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60"
+                      }
+                      alt={p.studentName}
+                      className="w-full h-40 object-cover"
+                    />
+
+                    <CardContent className="p-4 space-y-1">
+                      <h3 className="font-semibold text-lg">
+                        {p.studentName}
+                      </h3>
+                      <p className="text-sm font-medium">{p.company}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Role: {p.role || "Software Engineer"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Location: {p.location || "Bengaluru"}
+                      </p>
+                      <p className="font-semibold">
+                        Package: {p.package} LPA
+                      </p>
+                      <Badge className="mt-2">{p.status}</Badge>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Upcoming Drives */}
         <Card>
           <CardHeader className="flex flex-row justify-between">
-            <CardTitle>Upcoming Drives</CardTitle>
-            <Button size="sm" onClick={handleOpenAddDrive}>
-              + Add Drive
+            <CardTitle>Upcoming Companies</CardTitle>
+            <Button size="sm" type="button" onClick={handleOpenAddDrive}>
+              + Add
             </Button>
           </CardHeader>
+
           <CardContent className="space-y-4">
             {drives.map((d) => (
               <div
@@ -329,15 +349,15 @@ const AdminDashboard = () => {
                 className="p-4 rounded-lg bg-secondary/50 border"
               >
                 <div className="flex justify-between mb-2">
-                  <span className="font-semibold">{d.companyName}</span>
+                  <span className="font-semibold">{d.name}</span>
                   <span className="text-sm text-muted-foreground">
-                    {new Date(d.arrivalDate).toDateString()}
+                    {d.visitDate || "Invalid Date"}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm mb-2">
-                  <span>{d.openings} openings</span>
-                  <span>{d.registeredCount || 0} registered</span>
+                  <span>{d.posts || 0} posts</span>
+                  <span>{d.status || "Upcoming"}</span>
                 </div>
 
                 <div className="flex gap-2">
@@ -363,7 +383,7 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* ADD PLACEMENT MODAL */}
+      {/* ===== ADD PLACEMENT MODAL (NEW — THIS MAKES BUTTON WORK) ===== */}
       {isAddPlacementOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40">
           <Card className="w-full max-w-lg p-4">
@@ -415,6 +435,39 @@ const AdminDashboard = () => {
                 />
 
                 <Input
+                  placeholder="Role"
+                  value={newPlacement.role}
+                  onChange={(e) =>
+                    setNewPlacement({
+                      ...newPlacement,
+                      role: e.target.value,
+                    })
+                  }
+                />
+
+                <Input
+                  placeholder="Location"
+                  value={newPlacement.location}
+                  onChange={(e) =>
+                    setNewPlacement({
+                      ...newPlacement,
+                      location: e.target.value,
+                    })
+                  }
+                />
+
+                <Input
+                  placeholder="Photo URL"
+                  value={newPlacement.photo}
+                  onChange={(e) =>
+                    setNewPlacement({
+                      ...newPlacement,
+                      photo: e.target.value,
+                    })
+                  }
+                />
+
+                <Input
                   placeholder="Package (LPA)"
                   type="number"
                   value={newPlacement.package}
@@ -442,6 +495,162 @@ const AdminDashboard = () => {
 
                 <Button type="submit" className="w-full">
                   Add Placement
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ===== ADD / EDIT DRIVE MODAL (UNCHANGED) ===== */}
+      {isAddDriveOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
+          <Card className="w-full max-w-lg p-4">
+            <CardHeader className="flex justify-between">
+              <CardTitle>
+                {editingDriveId ? "Edit Drive" : "Add Drive"}
+              </CardTitle>
+              <Button variant="ghost" onClick={() => setIsAddDriveOpen(false)}>
+                <X />
+              </Button>
+            </CardHeader>
+
+            <CardContent>
+              <form onSubmit={handleSaveDrive} className="space-y-3">
+                <Input
+                  placeholder="Company Name"
+                  value={newDrive.name}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, name: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Logo URL"
+                  value={newDrive.logo}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, logo: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Package (e.g. 3.5 LPA)"
+                  value={newDrive.package}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, package: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Visit Date"
+                  value={newDrive.visitDate}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, visitDate: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Last Date to Apply"
+                  value={newDrive.lastDateToApply}
+                  onChange={(e) =>
+                    setNewDrive({
+                      ...newDrive,
+                      lastDateToApply: e.target.value,
+                    })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Posts"
+                  type="number"
+                  value={newDrive.posts}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, posts: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Role"
+                  value={newDrive.role}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, role: e.target.value })
+                  }
+                  required
+                />
+
+                <select
+                  className="w-full border rounded p-2"
+                  value={newDrive.jobType}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, jobType: e.target.value })
+                  }
+                >
+                  {JOB_TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+
+                <Input
+                  placeholder="Location"
+                  value={newDrive.location}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, location: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Eligibility"
+                  value={newDrive.eligibility}
+                  onChange={(e) =>
+                    setNewDrive({
+                      ...newDrive,
+                      eligibility: e.target.value,
+                    })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Status (Upcoming/Ongoing/Done)"
+                  value={newDrive.status}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, status: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Skills (comma separated)"
+                  value={newDrive.skills}
+                  onChange={(e) =>
+                    setNewDrive({ ...newDrive, skills: e.target.value })
+                  }
+                  required
+                />
+
+                <Input
+                  placeholder="Job Description"
+                  value={newDrive.jobDescription}
+                  onChange={(e) =>
+                    setNewDrive({
+                      ...newDrive,
+                      jobDescription: e.target.value,
+                    })
+                  }
+                  required
+                />
+
+                <Button type="submit" className="w-full">
+                  {editingDriveId ? "Update Drive" : "Add Drive"}
                 </Button>
               </form>
             </CardContent>

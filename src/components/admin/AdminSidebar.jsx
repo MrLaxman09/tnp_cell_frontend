@@ -10,6 +10,7 @@ import {
   GraduationCap,
   ChevronLeft,
   Menu,
+  Trophy, // ✅ NEW ICON FOR HIGHLIGHTS
 } from "lucide-react";
 import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,10 @@ const menuItems = [
   { icon: Building2, label: "Companies", path: "/admin/companies" },
   { icon: Briefcase, label: "Placements", path: "/admin/placements" },
   { icon: BookOpen, label: "Trainings", path: "/admin/trainings" },
+
+  // ✅ NEW MENU ITEM
+  { icon: Trophy, label: "Highlights", path: "/admin/highlights" },
+
   { icon: FileText, label: "Reports", path: "/admin/reports" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];

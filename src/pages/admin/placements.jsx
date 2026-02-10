@@ -11,14 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -33,6 +25,7 @@ import api from "@/api/axios";
 const AdminPlacements = () => {
   const [placements, setPlacements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -44,6 +37,9 @@ const AdminPlacements = () => {
     company: "",
     package: "",
     year: "",
+    location: "",
+    role: "",
+    photo: "",
   });
 
   // ===== FETCH PLACEMENTS =====
@@ -71,6 +67,9 @@ const AdminPlacements = () => {
       company: "",
       package: "",
       year: "",
+      location: "",
+      role: "",
+      photo: "",
     });
     setIsAddOpen(true);
   };
@@ -84,6 +83,9 @@ const AdminPlacements = () => {
       company: placement.company,
       package: placement.package,
       year: placement.year,
+      location: placement.location || "",
+      role: placement.role || "",
+      photo: placement.photo || "",
     });
     setIsAddOpen(true);
   };
@@ -99,6 +101,9 @@ const AdminPlacements = () => {
       package: Number(newPlacement.package),
       year: Number(newPlacement.year),
       status: "Confirmed",
+      location: newPlacement.location,
+      role: newPlacement.role,
+      photo: newPlacement.photo,
     };
 
     try {
@@ -130,131 +135,101 @@ const AdminPlacements = () => {
     }
   };
 
-  // ===== EXPORT CSV =====
-  const handleExport = () => {
-    const headers = ["Student Name", "Course", "Company", "Package", "Year"];
-
-    const csvContent = [
-      headers.join(","),
-      ...placements.map((p) =>
-        [
-          p.studentName,
-          p.course,
-          p.company,
-          `${p.package} LPA`,
-          p.year,
-        ]
-          .map((field) => `"${field}"`)
-          .join(",")
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "placements.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // ===== SEARCH FILTER =====
+  const filteredPlacements = placements.filter((p) =>
+    p.studentName.toLowerCase().includes(search.toLowerCase()) ||
+    p.company.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="p-6 lg:p-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Placements</h1>
+          <h1 className="text-2xl font-bold">Placements</h1>
           <p className="text-muted-foreground">
             Manage student placements and offers
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2" onClick={handleExport}>
-            <Download className="w-4 h-4" />
-            Export CSV
-          </Button>
-          <Button className="gap-2" onClick={handleAddNew}>
-            <Plus className="w-4 h-4" />
-            Add Placement
-          </Button>
-        </div>
+        <Button className="gap-2" onClick={handleAddNew}>
+          <Plus className="w-4 h-4" />
+          Add Placement
+        </Button>
       </div>
 
-      <Card className="border border-border mb-6">
+      {/* SEARCH */}
+      <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="relative flex-1">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search placements..."
+              placeholder="Search by student or company..."
               className="pl-10 h-10"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border border-border">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-6 text-center">Loading...</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Package</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {placements.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6">
-                      No placements found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  placements.map((placement) => (
-                    <TableRow key={placement._id}>
-                      <TableCell>{placement.studentName}</TableCell>
-                      <TableCell>{placement.course}</TableCell>
-                      <TableCell>{placement.company}</TableCell>
-                      <TableCell>{placement.package} LPA</TableCell>
-                      <TableCell>{placement.year}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(placement)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() =>
-                              setPlacementToDelete(placement)
-                            }
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* CARD GRID */}
+      {loading ? (
+        <div className="text-center p-6">Loading...</div>
+      ) : filteredPlacements.length === 0 ? (
+        <div className="text-center p-6">No placements found</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPlacements.map((p) => (
+            <Card key={p._id} className="overflow-hidden">
+              <img
+                src={
+                  p.photo ||
+                  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60"
+                }
+                alt={p.studentName}
+                className="w-full h-48 object-cover"
+              />
+
+              <CardHeader>
+                <CardTitle>{p.studentName}</CardTitle>
+              </CardHeader>
+
+              <CardContent className="space-y-2">
+                <p className="font-medium">{p.company}</p>
+                <p className="text-sm text-muted-foreground">
+                  Role: {p.role || "Software Engineer"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Location: {p.location || "Bengaluru"}
+                </p>
+                <p className="font-semibold">
+                  Package: {p.package} LPA
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Year: {p.year}
+                </p>
+
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(p)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setPlacementToDelete(p)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* ADD / EDIT MODAL */}
       {isAddOpen && (
@@ -304,6 +279,39 @@ const AdminPlacements = () => {
                     })
                   }
                   required
+                />
+
+                <Input
+                  placeholder="Role"
+                  value={newPlacement.role}
+                  onChange={(e) =>
+                    setNewPlacement({
+                      ...newPlacement,
+                      role: e.target.value,
+                    })
+                  }
+                />
+
+                <Input
+                  placeholder="Location"
+                  value={newPlacement.location}
+                  onChange={(e) =>
+                    setNewPlacement({
+                      ...newPlacement,
+                      location: e.target.value,
+                    })
+                  }
+                />
+
+                <Input
+                  placeholder="Photo URL"
+                  value={newPlacement.photo}
+                  onChange={(e) =>
+                    setNewPlacement({
+                      ...newPlacement,
+                      photo: e.target.value,
+                    })
+                  }
                 />
 
                 <Input
