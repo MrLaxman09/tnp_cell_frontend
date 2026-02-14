@@ -5,7 +5,8 @@ import {
   Download,
   X,
   Edit,
-  Trash2
+  Trash2,
+  Eye
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import api from "@/api/axios";
 
 const AdminPlacements = () => {
@@ -30,6 +37,7 @@ const AdminPlacements = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [placementToDelete, setPlacementToDelete] = useState(null);
+  const [viewPlacement, setViewPlacement] = useState(null);
 
   const [newPlacement, setNewPlacement] = useState({
     studentName: "",
@@ -210,6 +218,13 @@ const AdminPlacements = () => {
 
                 <div className="flex gap-2 mt-3">
                   <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setViewPlacement(p)}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(p)}
@@ -235,12 +250,12 @@ const AdminPlacements = () => {
       {isAddOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40">
           <Card className="w-full max-w-lg p-4">
-            <CardHeader className="flex justify-between">
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>
                 {editingId ? "Edit Placement" : "Add Placement"}
               </CardTitle>
-              <Button variant="ghost" onClick={() => setIsAddOpen(false)}>
-                <X />
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsAddOpen(false)}>
+                <X className="h-4 w-4" />
               </Button>
             </CardHeader>
             <CardContent>
@@ -374,6 +389,58 @@ const AdminPlacements = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* VIEW DETAILS DIALOG */}
+      <Dialog open={!!viewPlacement} onOpenChange={(open) => !open && setViewPlacement(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Placement Details</DialogTitle>
+          </DialogHeader>
+          
+          {viewPlacement && (
+            <div className="grid gap-4 py-4">
+              <div className="flex justify-center mb-4">
+                 <img
+                  src={viewPlacement.photo || "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60"}
+                  alt={viewPlacement.studentName}
+                  className="w-32 h-32 rounded-full object-cover border-4 border-muted"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Student Name</p>
+                  <p className="text-sm font-semibold">{viewPlacement.studentName}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Course</p>
+                  <p className="text-sm font-semibold">{viewPlacement.course}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Company</p>
+                  <p className="text-sm font-semibold">{viewPlacement.company}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Package</p>
+                  <p className="text-sm font-semibold">{viewPlacement.package} LPA</p>
+                </div>
+                 <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Role</p>
+                  <p className="text-sm font-semibold">{viewPlacement.role || "N/A"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Location</p>
+                  <p className="text-sm font-semibold">{viewPlacement.location || "N/A"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Year</p>
+                  <p className="text-sm font-semibold">{viewPlacement.year}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/api/axios";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -46,13 +47,7 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      await fetch("http://localhost:5000/api/contacts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      await api.post("/contacts", formData);
 
       toast({
         title: "Message sent!",
@@ -92,7 +87,7 @@ const Contact = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-start">
           {/* Contact Info */}
           <div className="space-y-8">
             <div className="flex items-start gap-4">

@@ -1,10 +1,34 @@
- import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
+ import { useState, useEffect } from "react";
+ import { GraduationCap, Mail, Phone, MapPin, ArrowUp } from "lucide-react";
+ import { Button } from "@/components/ui/button";
  
  const Footer = () => {
+   const [showTopBtn, setShowTopBtn] = useState(false);
+ 
+   useEffect(() => {
+     const handleScroll = () => {
+       if (window.scrollY > 400) {
+         setShowTopBtn(true);
+       } else {
+         setShowTopBtn(false);
+       }
+     };
+ 
+     window.addEventListener("scroll", handleScroll);
+     return () => window.removeEventListener("scroll", handleScroll);
+   }, []);
+ 
+   const goToTop = () => {
+     window.scrollTo({
+       top: 0,
+       behavior: "smooth",
+     });
+   };
+ 
    return (
      <footer className="bg-card border-t border-border py-16">
        <div className="container mx-auto px-6">
-         <div className="grid md:grid-cols-4 gap-12">
+         <div className="grid md:grid-cols-4 gap-6 md:gap-12">
            {/* Brand */}
            <div className="md:col-span-2">
              <div className="flex items-center gap-3 mb-4">
@@ -69,6 +93,16 @@
            </p>
          </div>
        </div>
+ 
+       {showTopBtn && (
+         <Button
+           className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg animate-in fade-in zoom-in duration-300"
+           size="icon"
+           onClick={goToTop}
+         >
+           <ArrowUp className="h-5 w-5" />
+         </Button>
+       )}
      </footer>
    );
  };
