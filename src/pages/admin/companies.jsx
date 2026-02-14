@@ -8,6 +8,8 @@ import {
   X,
   Pencil,
   Trash2,
+  Users,
+  Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import api from "@/api/axios";
 
 const JOB_TYPE_OPTIONS = ["Full-time", "Internship", "Part-time", "Contract"];
@@ -55,6 +63,11 @@ const AdminCompanies = () => {
   const [editingId, setEditingId] = useState(null);
   const [companyToDelete, setCompanyToDelete] = useState(null);
   const [search, setSearch] = useState("");
+
+  const [viewApplicantsOpen, setViewApplicantsOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [applicants, setApplicants] = useState([]);
+  const [loadingApplicants, setLoadingApplicants] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -182,6 +195,69 @@ const AdminCompanies = () => {
     }
   };
 
+  // ===== VIEW APPLICANTS =====
+  const handleViewApplicants = async (company) => {
+    setSelectedCompany(company);
+    setViewApplicantsOpen(true);
+    setLoadingApplicants(true);
+    setApplicants([]);
+
+    try {
+      const res = await api.get("/applications");
+      const allApps = res.data.applications || [];
+      const filtered = allApps.filter((app) => {
+        const cId =
+          typeof app.companyId === "object" ? app.companyId?._id : app.companyId;
+        return cId === company._id;
+      });
+      setApplicants(filtered);
+    } catch (error) {
+      console.error("Error fetching applicants:", error);
+    } finally {
+      setLoadingApplicants(false);
+    }
+  };
+
+  // ===== EXPORT APPLICANTS CSV =====
+  const handleExportApplicants = () => {
+    if (!applicants.length) return;
+
+    const headers = [
+      "Full Name",
+      "Email",
+      "Course",
+      "Status",
+      "Applied On",
+      "Resume Link",
+    ];
+
+    const rows = applicants.map((app) => [
+      app.fullName,
+      app.email,
+      app.course,
+      app.status || "Pending",
+      new Date(app.createdAt).toLocaleDateString(),
+      app.resumeLink || "N/A",
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `${selectedCompany?.name || "company"}_applicants.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // ✅ SAFE FILTER (NO CRASH)
   const filteredCompanies = companies.filter((c) =>
     (c.name || "").toLowerCase().includes(search.toLowerCase())
@@ -302,6 +378,10 @@ const AdminCompanies = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewApplicants(company)}>
+                              <Users className="w-4 h-4 mr-2" />
+                              View Applicants
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleEditClick(company)}
                             >
@@ -329,8 +409,8 @@ const AdminCompanies = () => {
 
       {/* ADD / EDIT MODAL */}
       {isAddOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-          <Card className="w-full max-w-lg p-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <Card className="w-full max-w-lg p-4 max-h-[90vh] overflow-y-auto">
             <CardHeader className="flex justify-between">
               <CardTitle>
                 {editingId ? "Edit Company" : "Add Company"}
@@ -505,6 +585,74 @@ const AdminCompanies = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* VIEW APPLICANTS DIALOG */}
+      <Dialog open={viewApplicantsOpen} onOpenChange={setViewApplicantsOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Applicants for {selectedCompany?.name}</DialogTitle>
+          </DialogHeader>
+
+          {applicants.length > 0 && !loadingApplicants && (
+            <div className="flex justify-end mb-2">
+              <Button variant="outline" size="sm" onClick={handleExportApplicants}>
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
+          )}
+
+          {loadingApplicants ? (
+            <div className="text-center py-8">Loading applicants...</div>
+          ) : applicants.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No students have applied to this company yet.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Course</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Applied On</TableHead>
+                  <TableHead>Resume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {applicants.map((app) => (
+                  <TableRow key={app._id}>
+                    <TableCell className="font-medium">{app.fullName}</TableCell>
+                    <TableCell>{app.email}</TableCell>
+                    <TableCell>{app.course}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{app.status || "Pending"}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(app.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {app.resumeLink ? (
+                        <a
+                          href={app.resumeLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        "N/A"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

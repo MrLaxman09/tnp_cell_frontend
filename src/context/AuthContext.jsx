@@ -9,6 +9,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchUser = async () => {
+      // If a token was stored by login, attach it so /auth/me uses it.
+      const token = localStorage.getItem("token");
+      if (token) {
+        api.defaults.headers = api.defaults.headers || {};
+        api.defaults.headers.common = api.defaults.headers.common || {};
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
       try {
         const res = await api.get("/auth/me", {
           withCredentials: true,
@@ -16,8 +23,16 @@ export const AuthProvider = ({ children }) => {
 
         // ✅ USE EXACT USER FROM BACKEND (no admin trick)
         setUser(res.data.user);
-      } catch {
+      } catch (err) {
         setUser(null);
+        // If token is invalid/expired, remove stored auth flags to avoid retry loops
+        if (err.response?.status === 401) {
+          localStorage.removeItem("logged_in");
+          localStorage.removeItem("token");
+          if (api.defaults?.headers?.common) {
+            delete api.defaults.headers.common["Authorization"];
+          }
+        }
       } finally {
         setLoading(false);
       }

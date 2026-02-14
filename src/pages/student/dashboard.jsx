@@ -2,66 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ApplyJobDialog from "./Applyjob";
+import EditProfileDialog from "./EditProfile";
 
 import {
-  Briefcase,
-  Calendar,
-  CheckCircle,
-  Search,
   User,
+  Bell,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/landing/Header";
 import api from "@/api/axios";
-
-const stats = [
-  {
-    title: "Applied Jobs",
-    value: "12",
-    icon: Briefcase,
-    description: "In the last 30 days",
-  },
-  {
-    title: "Upcoming Interviews",
-    value: "3",
-    icon: Calendar,
-    description: "Next: Google (Feb 20)",
-  },
-  {
-    title: "Offers Received",
-    value: "1",
-    icon: CheckCircle,
-    description: "Action required",
-  },
-  {
-    title: "Profile Score",
-    value: "85%",
-    icon: User,
-    description: "Add projects to improve",
-  },
-];
-
-const recentApplications = [
-  {
-    company: "Google",
-    role: "Associate Product Manager",
-    date: "Feb 10, 2025",
-    status: "Shortlisted",
-  },
-  {
-    company: "Flipkart",
-    role: "SDE",
-    date: "Feb 5, 2025",
-    status: "Rejected",
-  },
-  {
-    company: "TCS",
-    role: "System Engineer",
-    date: "Jan 28, 2025",
-    status: "Pending",
-  },
-];
 
 const StudentDashboard = () => {
   const [user, setUser] = useState(null);
@@ -71,22 +21,23 @@ const StudentDashboard = () => {
 
   // Store only applied company IDs
   const [appliedCompanies, setAppliedCompanies] = useState([]);
+  const [myApplications, setMyApplications] = useState([]);
 
   const navigate = useNavigate();
 
   // ===== FETCH LOGGED-IN USER =====
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await api.get("/auth/me", {
-          withCredentials: true,
-        });
-        setUser(res.data.user);
-      } catch (error) {
-        setUser(null);
-      }
-    };
+  const fetchUser = async () => {
+    try {
+      const res = await api.get("/auth/me", {
+        withCredentials: true,
+      });
+      setUser(res.data.user);
+    } catch (error) {
+      setUser(null);
+    }
+  };
 
+  useEffect(() => {
     fetchUser();
   }, []);
 
@@ -118,6 +69,7 @@ const StudentDashboard = () => {
           withCredentials: true,
         });
 
+        setMyApplications(res.data.applications);
         const appliedIds = res.data.applications.map((app) =>
           typeof app.companyId === "string"
             ? app.companyId
@@ -133,6 +85,26 @@ const StudentDashboard = () => {
     fetchMyApplications();
   }, []);
 
+  // ===== DERIVED NOTIFICATIONS =====
+  const notifications = [
+    ...companies.map((c) => ({
+      id: c._id,
+      title: `New Drive: ${c.companyName || c.name || "Company"}`,
+      desc: `Role: ${c.role || "N/A"}`,
+      date: c.arrivalDate,
+      type: "drive",
+    })),
+    ...myApplications.map((a) => ({
+      id: a._id,
+      title: `Application Update`,
+      desc: `Applied to ${a.company || a.companyId?.companyName} (${a.status})`,
+      date: a.createdAt,
+      type: "app",
+    })),
+  ]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 5);
+
   if (loading) {
     return (
       <div className="text-center mt-20 text-muted-foreground">
@@ -145,7 +117,7 @@ const StudentDashboard = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-6 py-24">
+      <main className="container mx-auto px-6 pt-40 pb-12">
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
@@ -156,37 +128,6 @@ const StudentDashboard = () => {
               overview.
             </p>
           </div>
-
-          <Button className="gap-2">
-            <Search className="w-4 h-4" />
-            Browse Jobs
-          </Button>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => (
-            <Card key={stat.title} className="border border-border">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {stat.title}
-                    </p>
-                    <p className="text-2xl font-bold text-foreground">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {stat.description}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <stat.icon className="w-5 h-5 text-primary" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -221,6 +162,13 @@ const StudentDashboard = () => {
                     : "TBA";
 
                   const isApplied = appliedCompanies.includes(company._id);
+                  const application = isApplied
+                    ? myApplications.find((app) =>
+                        (typeof app.companyId === "string"
+                          ? app.companyId
+                          : app.companyId?._id) === company._id
+                      )
+                    : null;
 
                   return (
                     <div
@@ -243,12 +191,7 @@ const StudentDashboard = () => {
 
                       <div className="flex items-center gap-3 self-end sm:self-auto">
                         {isApplied ? (
-                          <>
-                            <Badge variant="secondary">Applied</Badge>
-                            <Button size="sm" variant="outline">
-                              View Details
-                            </Button>
-                          </>
+                          <Badge variant="secondary">Applied</Badge>
                         ) : (
                           <>
                             <Badge variant="default">Eligible</Badge>
@@ -266,49 +209,6 @@ const StudentDashboard = () => {
                     </div>
                   );
                 })}
-              </CardContent>
-            </Card>
-
-            {/* Recent Applications */}
-            <Card className="border border-border">
-              <CardHeader>
-                <CardTitle className="text-xl">
-                  Recent Applications
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentApplications.map((app, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-                    >
-                      <div>
-                        <p className="font-medium">{app.company}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {app.role}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <Badge
-                          variant={
-                            app.status === "Shortlisted"
-                              ? "default"
-                              : app.status === "Rejected"
-                              ? "destructive"
-                              : "secondary"
-                          }
-                        >
-                          {app.status}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Applied on {app.date}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -332,13 +232,46 @@ const StudentDashboard = () => {
                   {user?.course || "Course not set"} • Final Year
                 </p>
 
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate("/student/edit-profile")}
-                >
-                  Edit Profile
-                </Button>
+                <EditProfileDialog
+                  trigger={
+                    <Button variant="outline" className="w-full">
+                      Edit Profile
+                    </Button>
+                  }
+                  onProfileUpdate={fetchUser}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Notifications Card */}
+            <Card className="border border-border">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Bell className="w-5 h-5" />
+                  Notifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {notifications.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center">
+                      No new notifications
+                    </p>
+                  ) : (
+                    notifications.map((n, i) => (
+                      <div key={i} className="flex gap-3 items-start pb-3 border-b border-border/50 last:border-0 last:pb-0">
+                        <div className={`w-2 h-2 mt-2 rounded-full ${n.type === 'drive' ? 'bg-blue-500' : 'bg-green-500'}`} />
+                        <div>
+                          <p className="text-sm font-medium">{n.title}</p>
+                          <p className="text-xs text-muted-foreground">{n.desc}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            {n.date ? new Date(n.date).toLocaleDateString() : "Just now"}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

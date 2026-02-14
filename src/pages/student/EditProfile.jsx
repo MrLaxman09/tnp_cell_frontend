@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Mail, Hash, BookOpen, Lock } from "lucide-react";
 import api from "@/api/axios";
 
 const courseOptions = [
@@ -29,7 +29,7 @@ const courseOptions = [
   "Other",
 ];
 
-const EditProfileDialog = ({ trigger }) => {
+const EditProfileDialog = ({ trigger, onProfileUpdate }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -101,6 +101,7 @@ const EditProfileDialog = ({ trigger }) => {
       });
 
       toast.success("Profile updated successfully");
+      if (onProfileUpdate) onProfileUpdate();
       setOpen(false);
     } catch (error) {
       console.error("Update failed:", error);
@@ -118,96 +119,138 @@ const EditProfileDialog = ({ trigger }) => {
         {trigger || <Button variant="outline">Edit Profile</Button>}
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Edit Profile</DialogTitle>
           <DialogDescription>
-            Update your personal details and password
+            Update your personal details and password to keep your account secure.
           </DialogDescription>
         </DialogHeader>
 
         {fetching ? (
-          <div className="text-center py-6">Loading profile...</div>
+          <div className="flex flex-col items-center justify-center py-10 space-y-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading profile...</p>
+          </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Full Name</Label>
-              <Input
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6 py-2">
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="pl-9"
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <Label>Email</Label>
-              <Input
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Enrollment Number</Label>
-              <Input
-                name="enrollmentNo"
-                value={formData.enrollmentNo}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Course</Label>
-              <select
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              >
-                <option value="">Select course</option>
-                {courseOptions.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="border-t pt-4 mt-4 space-y-3">
-              <p className="text-sm font-medium text-muted-foreground">
-                Change Password (Optional)
-              </p>
-
-              <div>
-                <Label>Current Password</Label>
-                <Input
-                  name="currentPassword"
-                  type="password"
-                  value={formData.currentPassword}
-                  onChange={handleChange}
-                  placeholder="Enter current password"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="enrollmentNo">Enrollment No.</Label>
+                  <div className="relative">
+                    <Hash className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="enrollmentNo"
+                      name="enrollmentNo"
+                      value={formData.enrollmentNo}
+                      onChange={handleChange}
+                      className="pl-9"
+                      placeholder="EN123456"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <Label>New Password</Label>
-                <Input
-                  name="newPassword"
-                  type="password"
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  placeholder="Enter new password"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="pl-9"
+                    placeholder="john@example.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="course">Course</Label>
+                <div className="relative">
+                  <BookOpen className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <select
+                    id="course"
+                    name="course"
+                    value={formData.course}
+                    onChange={handleChange}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-9 appearance-none"
+                    required
+                  >
+                    <option value="" disabled>Select your course</option>
+                    {courseOptions.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-muted/40 p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-primary" />
+                <h4 className="font-medium text-sm">Change Password</h4>
+              </div>
+              
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Input
+                    id="currentPassword"
+                    name="currentPassword"
+                    type="password"
+                    value={formData.currentPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className="bg-background"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className="bg-background"
+                  />
+                  <p className="text-[0.8rem] text-muted-foreground">
+                    Leave blank if you don't want to change it.
+                  </p>
+                </div>
               </div>
             </div>
 
             <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
               <Button type="submit" disabled={loading}>
                 {loading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

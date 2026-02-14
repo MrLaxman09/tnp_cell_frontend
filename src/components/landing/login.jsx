@@ -62,10 +62,34 @@ const Login = () => {
         email: loginData.email,
         password: loginData.password,
       });
+      // If backend returns a token, store it in localStorage
+      if (res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
+      // Verify token is stored; if yes, attach to axios default headers,
+      // otherwise fall back to cookie-based session check.
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
+        api.defaults.headers = api.defaults.headers || {};
+        api.defaults.headers.common = api.defaults.headers.common || {};
+        api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+      } else {
+        // Verify session was established (cookie saved) before proceeding
+        try {
+          await api.get("/auth/me");
+        } catch (e) {
+          console.error("Session check failed:", e);
+          throw new Error(
+            "Login succeeded but session failed. Browser blocked the cookie. Backend needs 'trust proxy', 'secure: true', and 'sameSite: none'."
+          );
+        }
+      }
 
       setSubmissionSuccess(true);
+      localStorage.setItem("logged_in", "true");
 
-      const role = res.data.user.role;
+      const role = res.data?.user?.role;
 
       setTimeout(() => {
         if (role === "admin") {
@@ -76,7 +100,7 @@ const Login = () => {
       }, 1200);
     } catch (error) {
       setSubmissionError(
-        error.response?.data?.error || "Login failed. Check credentials."
+        error.response?.data?.error || error.message || "Login failed. Check credentials."
       );
     } finally {
       setIsSubmitting(false);

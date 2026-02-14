@@ -22,8 +22,15 @@ const Hero = () => {
     fetchHighlights();
   }, []);
 
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-hero overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center bg-hero overflow-hidden pt-24 md:pt-32 pb-16 md:pb-20">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -48,7 +55,7 @@ const Hero = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-8 animate-fade-in">
             <Sparkles className="w-4 h-4 text-accent" />
             <span className="text-sm text-primary-foreground/80">
-              Placement Season 2024-25 is Live
+              Placement Season 2026 is Live
             </span>
           </div>
 
@@ -68,11 +75,16 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay-2">
-            <Button variant="hero" size="xl" className="group">
+            <Button
+              variant="hero"
+              size="xl"
+              className="group"
+              onClick={() => scrollToSection("trainings")}
+            >
               Explore Opportunities
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="heroOutline" size="xl">
+            <Button variant="heroOutline" size="xl" onClick={() => scrollToSection("companies")}>
               View Upcoming Drives
             </Button>
           </div>

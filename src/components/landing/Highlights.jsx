@@ -132,7 +132,7 @@ const Highlights = () => {
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="text-center p-6 rounded-2xl bg-primary-foreground/5 border border-primary-foreground/10"
+              className="text-center p-6 rounded-2xl bg-primary-foreground/5 border border-primary-foreground/10 hover:bg-primary-foreground/10 transition-all duration-300 hover:-translate-y-1"
             >
               <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
                 <stat.icon className="w-6 h-6 text-accent" />

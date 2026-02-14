@@ -10,6 +10,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -46,6 +56,7 @@ const ApplyJobDialog = ({ job, trigger }) => {
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -81,7 +92,7 @@ const ApplyJobDialog = ({ job, trigger }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!job?._id) {
@@ -94,6 +105,10 @@ const ApplyJobDialog = ({ job, trigger }) => {
       return;
     }
 
+    setShowConfirm(true);
+  };
+
+  const handleConfirmApply = async () => {
     setLoading(true);
 
     try {
@@ -109,17 +124,20 @@ const ApplyJobDialog = ({ job, trigger }) => {
 
       toast.success(`Applied to ${job.companyName || job.company} successfully`);
       setOpen(false);
+      setShowConfirm(false);
     } catch (err) {
       console.error(err);
       toast.error(
         err.response?.data?.error || "Application failed"
       );
+      setShowConfirm(false);
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || <Button size="sm">Apply</Button>}
@@ -230,16 +248,39 @@ const ApplyJobDialog = ({ job, trigger }) => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Submit Application
+            <Button type="submit">
+              Review Application
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirm Application</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to apply for the <b>{job?.role}</b> role at{" "}
+            <b>{job?.companyName || job?.company}</b>?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault();
+              handleConfirmApply();
+            }}
+            disabled={loading}
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Confirm Apply
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
