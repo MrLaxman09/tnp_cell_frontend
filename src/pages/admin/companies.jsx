@@ -63,11 +63,24 @@ const AdminCompanies = () => {
   const [editingId, setEditingId] = useState(null);
   const [companyToDelete, setCompanyToDelete] = useState(null);
   const [search, setSearch] = useState("");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const [viewApplicantsOpen, setViewApplicantsOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
+
+  // Date Validations
+  const today = new Date().toISOString().split("T")[0];
+  const formatDate = (date) => {
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -207,7 +220,9 @@ const AdminCompanies = () => {
       const allApps = res.data.applications || [];
       const filtered = allApps.filter((app) => {
         const cId =
-          typeof app.companyId === "object" ? app.companyId?._id : app.companyId;
+          typeof app.companyId === "object"
+            ? app.companyId?._id
+            : app.companyId;
         return cId === company._id;
       });
       setApplicants(filtered);
@@ -251,7 +266,7 @@ const AdminCompanies = () => {
     link.href = url;
     link.setAttribute(
       "download",
-      `${selectedCompany?.name || "company"}_applicants.csv`
+      `${selectedCompany?.name || "company"}_applicants.csv`,
     );
     document.body.appendChild(link);
     link.click();
@@ -259,9 +274,76 @@ const AdminCompanies = () => {
   };
 
   // ✅ SAFE FILTER (NO CRASH)
-  const filteredCompanies = companies.filter((c) =>
-    (c.name || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCompanies = companies.filter((c) => {
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      (c.name || "").toLowerCase().includes(searchText) ||
+      (c.role || "").toLowerCase().includes(searchText) ||
+      (c.location || "").toLowerCase().includes(searchText);
+
+    const matchesYear =
+      selectedYear === "all" ||
+      new Date(c.visitDate).getFullYear().toString() === selectedYear;
+
+    const matchesStatus =
+      statusFilter === "all" || (c.status || "").toLowerCase() === statusFilter;
+
+    return matchesSearch && matchesYear && matchesStatus;
+  });
+
+  // ===== EXPORT COMPANIES TO CSV =====
+  const exportCompaniesCsv = () => {
+    if (!filteredCompanies.length) {
+      alert("No companies to export.");
+      return;
+    }
+
+    const headers = [
+      "Company Name",
+      "Role",
+      "Job Type",
+      "Location",
+      "Package",
+      "Posts",
+      "Eligibility",
+      "Status",
+      "Visit Date",
+      "Last Date To Apply",
+      "Skills",
+    ];
+
+    const rows = filteredCompanies.map((c) => [
+      c.name || "N/A",
+      c.role || "N/A",
+      c.jobType || "N/A",
+      c.location || "N/A",
+      c.package || "N/A",
+      c.posts || "N/A",
+      c.eligibility || "N/A",
+      c.status || "N/A",
+      c.visitDate ? new Date(c.visitDate).toLocaleDateString("en-GB") : "N/A",
+      c.lastDateToApply
+        ? new Date(c.lastDateToApply).toLocaleDateString("en-GB")
+        : "N/A",
+      Array.isArray(c.skills) ? c.skills.join(", ") : c.skills || "N/A",
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "companies.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="p-6 lg:p-8">
@@ -276,13 +358,18 @@ const AdminCompanies = () => {
           <Plus className="w-4 h-4" />
           Add Company
         </Button>
+        <Button className="gap-2" onClick={exportCompaniesCsv}>
+          <Download className="w-4 h-4" />
+          Export CSV
+        </Button>
       </div>
 
-      {/* SEARCH */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
+      {/* SEARCH + FILTER BAR */}
+      <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6 ">
+        {/* Search */}
+        <div className="flex-1 ">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground " />
             <Input
               placeholder="Search companies..."
               className="pl-10 h-10"
@@ -290,8 +377,34 @@ const AdminCompanies = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-3">
+          {/* Year Filter */}
+          <select
+            className="border rounded-md px-3 h-10 text-sm bg-white"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            <option value="all">All Years</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+          </select>
+
+          {/* Status Filter */}
+          <select
+            className="border rounded-md px-3 h-10 text-sm bg-white"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+      </div>
 
       {/* TABLE */}
       <Card>
@@ -378,7 +491,9 @@ const AdminCompanies = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewApplicants(company)}>
+                            <DropdownMenuItem
+                              onClick={() => handleViewApplicants(company)}
+                            >
                               <Users className="w-4 h-4 mr-2" />
                               View Applicants
                             </DropdownMenuItem>
@@ -429,15 +544,28 @@ const AdminCompanies = () => {
                   }
                   required
                 />
+                <div className="flex items-center justify-center gap-3">
+                  <Input
+                    placeholder="Logo URL"
+                    value={formData.logo}
+                    onChange={(e) =>
+                      setFormData({ ...formData, logo: e.target.value })
+                    }
+                    required
+                  />
 
-                <Input
-                  placeholder="Logo URL"
-                  value={formData.logo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, logo: e.target.value })
-                  }
-                  required
-                />
+                  {/* ✅ Preview */}
+                  {formData.logo && (
+                    <div className="">
+                      <img
+                        src={formData.logo}
+                        alt="Logo Preview"
+                        className="w-[60px] object-cover rounded-md border"
+                        onError={(e) => (e.target.style.display = "none")} // ❌ invalid link hide
+                      />
+                    </div>
+                  )}
+                </div>
 
                 <Input
                   placeholder="Package (e.g. 3.5 LPA)"
@@ -448,26 +576,60 @@ const AdminCompanies = () => {
                   required
                 />
 
-                <Input
-                  placeholder="Visit Date (e.g. 20 Feb 2026)"
-                  value={formData.visitDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, visitDate: e.target.value })
-                  }
-                  required
-                />
+                {/* Visit Date */}
+                <div>
+                  <Input
+                    type={formData.visitDate ? "date" : "text"}
+                    placeholder="Select Visit Date (e.g. 30 Apr 2026)"
+                    onFocus={(e) => (e.target.type = "date")}
+                    onBlur={(e) => {
+                      if (!formData.visitDate) e.target.type = "text";
+                    }}
+                    min={today} // ❌ past block
+                    value={formData.visitDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, visitDate: e.target.value })
+                    }
+                    required
+                  />
 
-                <Input
-                  placeholder="Last Date to Apply"
-                  value={formData.lastDateToApply}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      lastDateToApply: e.target.value,
-                    })
-                  }
-                  required
-                />
+                  {/* Preview formatted */}
+                  {formData.visitDate && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Visit Date of Company Selected:{" "}
+                      <strong>{formatDate(formData.visitDate)}</strong>
+                    </p>
+                  )}
+                </div>
+
+                {/* Last Date to Apply */}
+                <div>
+                  <Input
+                    type={formData.visitDate ? "date" : "text"}
+                    placeholder="Select Visit Date (e.g. 30 Apr 2026)"
+                    onFocus={(e) => (e.target.type = "date")}
+                    onBlur={(e) => {
+                      if (!formData.visitDate) e.target.type = "text";
+                    }}
+                    min={today}
+                    max={formData.visitDate} // 👈 important
+                    value={formData.lastDateToApply}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        lastDateToApply: e.target.value,
+                      })
+                    }
+                    required
+                  />
+
+                  {formData.lastDateToApply && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Last Date To Apply Selected:{" "}
+                      <strong>{formatDate(formData.lastDateToApply)}</strong>
+                    </p>
+                  )}
+                </div>
 
                 <Input
                   placeholder="Posts"
@@ -595,7 +757,11 @@ const AdminCompanies = () => {
 
           {applicants.length > 0 && !loadingApplicants && (
             <div className="flex justify-end mb-2">
-              <Button variant="outline" size="sm" onClick={handleExportApplicants}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportApplicants}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export CSV
               </Button>
@@ -623,7 +789,9 @@ const AdminCompanies = () => {
               <TableBody>
                 {applicants.map((app) => (
                   <TableRow key={app._id}>
-                    <TableCell className="font-medium">{app.fullName}</TableCell>
+                    <TableCell className="font-medium">
+                      {app.fullName}
+                    </TableCell>
                     <TableCell>{app.email}</TableCell>
                     <TableCell>{app.course}</TableCell>
                     <TableCell>
@@ -655,6 +823,6 @@ const AdminCompanies = () => {
       </Dialog>
     </div>
   );
-};
+};;
 
 export default AdminCompanies;

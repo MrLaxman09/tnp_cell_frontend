@@ -112,19 +112,19 @@ const Header = () => {
         {/* HOME NAV - Desktop */}
         {!isDashboard && (
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#about" className="text-sm hover:text-foreground">
+            <a href="#about" className="text-base hover:text-foreground">
               About
             </a>
-            <a href="#companies" className="text-sm hover:text-foreground">
+            <a href="#companies" className="text-base hover:text-foreground">
               Companies
             </a>
-            <a href="#trainings" className="text-sm hover:text-foreground">
+            <a href="#trainings" className="text-base hover:text-foreground">
               Trainings
             </a>
-            <a href="#highlights" className="text-sm hover:text-foreground">
+            <a href="#highlights" className="text-base hover:text-foreground">
               Highlights
             </a>
-            <a href="#contact" className="text-sm hover:text-foreground">
+            <a href="#contact" className="text-base hover:text-foreground">
               Contact
             </a>
           </nav>

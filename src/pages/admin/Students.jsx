@@ -5,6 +5,7 @@ import {
   Edit,
   Trash2,
   X,
+  Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -123,13 +124,45 @@ const Students = () => {
     }
   };
 
-  // ===== SEARCH FILTER =====
-  const filteredStudents = students.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.email.toLowerCase().includes(search.toLowerCase()) ||
-      (s.enrollmentNo || "").toLowerCase().includes(search.toLowerCase())
+const filteredStudents = students.filter((s) => {
+  const searchText = search.toLowerCase();
+
+  return (
+    s.name.toLowerCase().includes(searchText) ||
+    s.email.toLowerCase().includes(searchText) ||
+    s.enrollmentNo.toLowerCase().includes(searchText) ||
+    s.course.toLowerCase().includes(searchText)
   );
+});
+
+
+
+// ===== EXPORT STUDENTS TO CSV =====
+const exportStudentCSV = () => {
+  const headers = ["Name", "Email", "Enrollment No.", "Course", "Joined"];
+
+  const rows = filteredStudents.map((s) => [
+    s.name,
+    s.email,
+    s.enrollmentNo,
+    s.course,
+    new Date(s.createdAt).toLocaleDateString(),
+  ]);
+
+  const csv = [headers, ...rows]
+    .map((row) => row.map((v) => `"${v}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = window.URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "students.csv";
+  link.click();
+};
+
+
 
   return (
     <div className="p-6 lg:p-8">
@@ -141,9 +174,14 @@ const Students = () => {
             Manage real registered students
           </p>
         </div>
+       
         <Button className="gap-2" onClick={handleAddClick}>
           <Plus className="w-4 h-4" />
           Add Student
+        </Button>
+        <Button className="gap-2" onClick={exportStudentCSV}>
+          <Download className="w-4 h-4" />
+          Export CSV
         </Button>
       </div>
 
@@ -256,9 +294,7 @@ const Students = () => {
                 <Input
                   placeholder="Name"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm({ ...form, name: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                   required
                 />
 
@@ -266,9 +302,7 @@ const Students = () => {
                   placeholder="Email"
                   type="email"
                   value={form.email}
-                  onChange={(e) =>
-                    setForm({ ...form, email: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
                 />
 
@@ -284,9 +318,7 @@ const Students = () => {
                 <Input
                   placeholder="Course"
                   value={form.course}
-                  onChange={(e) =>
-                    setForm({ ...form, course: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, course: e.target.value })}
                   required
                 />
 

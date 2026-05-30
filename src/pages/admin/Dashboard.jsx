@@ -23,7 +23,9 @@ const AdminDashboard = () => {
     companies: 0,
     placements: 0,
     avgPackage: 0,
+    highestPackage: 0,
   });
+  // console.log(stats.highestPackage)
 
   const [drives, setDrives] = useState([]);
   const [placements, setPlacements] = useState([]);
@@ -70,12 +72,13 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [studentRes, companyRes, placementRes, avgRes] =
+      const [studentRes, companyRes, placementRes, avgRes, highestRes] =
         await Promise.all([
           api.get("/students/count"),
           api.get("/companies"),
           api.get("/placements/count"),
           api.get("/placements/average-package"),
+          api.get("/placements/highest-package"),
         ]);
 
       setStats({
@@ -83,6 +86,7 @@ const AdminDashboard = () => {
         companies: companyRes.data.count,
         placements: placementRes.data.count,
         avgPackage: avgRes.data.avgPackage || 0,
+        highestPackage: highestRes.data.highestPackage || 0,
       });
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -252,14 +256,23 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 py-6 md:grid-cols-3 lg:grid-cols-5 gap-6 lg:gap-2 mb-8">
         {[
           { title: "Total Students", value: stats.students, icon: Users },
-          { title: "Active Companies", value: stats.companies, icon: Building2 },
+          {
+            title: "Active Companies",
+            value: stats.companies,
+            icon: Building2,
+          },
           { title: "Placements", value: stats.placements, icon: Briefcase },
           {
+            title: "Highest. Package",
+            value: `₹${stats.highestPackage.toFixed(0)} LPA`,
+            icon: TrendingUp,
+          },
+          {
             title: "Avg. Package",
-            value: `₹${stats.avgPackage.toFixed(1)} LPA`,
+            value: `₹${stats.avgPackage.toFixed(0)} LPA`,
             icon: TrendingUp,
           },
         ].map((stat) => (
@@ -267,9 +280,7 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">
-                    {stat.title}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
                   <p className="text-2xl font-bold">{stat.value}</p>
                 </div>
                 <stat.icon className="w-6 h-6 text-primary" />
@@ -304,16 +315,14 @@ const AdminDashboard = () => {
                     <img
                       src={
                         p.photo ||
-                        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60"
+                        "https://i.pinimg.com/736x/38/47/9c/38479c637a4ef9c5ced95ca66ffa2f41.jpg"
                       }
                       alt={p.studentName}
                       className="w-full h-40 object-cover"
                     />
 
                     <CardContent className="p-4 space-y-1">
-                      <h3 className="font-semibold text-lg">
-                        {p.studentName}
-                      </h3>
+                      <h3 className="font-semibold text-lg">{p.studentName}</h3>
                       <p className="text-sm font-medium">{p.company}</p>
                       <p className="text-sm text-muted-foreground">
                         Role: {p.role || "Software Engineer"}
@@ -321,9 +330,7 @@ const AdminDashboard = () => {
                       <p className="text-sm text-muted-foreground">
                         Location: {p.location || "Bengaluru"}
                       </p>
-                      <p className="font-semibold">
-                        Package: {p.package} LPA
-                      </p>
+                      <p className="font-semibold">Package: {p.package} LPA</p>
                       <Badge className="mt-2">{p.status}</Badge>
                     </CardContent>
                   </Card>

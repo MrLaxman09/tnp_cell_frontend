@@ -58,10 +58,10 @@ const Trainings = () => {
             </p>
           </div>
 
-          <Button variant="outline" className="mt-6 md:mt-0 gap-2 group">
+          {/* <Button variant="outline" className="mt-6 md:mt-0 gap-2 group">
             View All Programs
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
+          </Button> */}
         </div>
 
         {trainings.length === 0 ? (

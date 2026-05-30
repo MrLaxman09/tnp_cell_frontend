@@ -26,38 +26,74 @@ import { toast } from "sonner";
 import { Loader2, Link as LinkIcon } from "lucide-react";
 import api from "@/api/axios";
 
-const COURSE_OPTIONS = [
-  "BCA",
-  "BSc Computer Science",
-  "BTech CSE",
-  "BTech IT",
-  "MCA",
-  "MBA",
-  "BBA",
-  "BCom",
-  "BA",
-  "Other",
-];
-
-const DEPARTMENT_OPTIONS = [
-  "Computer Science",
-  "Information Technology",
-  "Electronics",
-  "Mechanical",
-  "Civil",
-  "Electrical",
-  "Management",
-  "Commerce",
-  "Arts",
-  "Science",
-];
-
 const ApplyJobDialog = ({ job, trigger }) => {
   const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+
+  const isValidURL = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const isValidDriveLink = (url) => {
+    return /^https:\/\/(drive\.google\.com)\//.test(url);
+  };
+
+  const getPreviewLink = (url) => {
+    const match = url.match(/\/d\/(.*?)\//);
+    if (match && match[1]) {
+      return `https://drive.google.com/file/d/${match[1]}/preview`;
+    }
+    return null;
+  };
+
+
+  const COURSE_DEPT_MAP = {
+    BCA: "Computer Science",
+    "BSc Computer Science": "Computer Science",
+    "BTech CSE": "Computer Science",
+    "BTech IT": "Information Technology",
+    MCA: "Computer Science",
+    MBA: "Management",
+    BBA: "Management",
+    BCom: "Commerce",
+    BA: "Arts",
+  };
+
+  const COURSE_OPTIONS = [
+    "BCA",
+    "BSc Computer Science",
+    "BTech CSE",
+    "BTech IT",
+    "MCA",
+    "MBA",
+    "BBA",
+    "BCom",
+    "BA",
+    "Other",
+  ];
+
+  const DEPARTMENT_OPTIONS = [
+    "Computer Science",
+    "Information Technology",
+    "Electronics",
+    "Mechanical",
+    "Civil",
+    "Electrical",
+    "Management",
+    "Commerce",
+    "Arts",
+    "Science",
+  ];
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -81,32 +117,62 @@ const ApplyJobDialog = ({ job, trigger }) => {
         department: user.department || "",
         resumeLink: "",
       });
+      setPreviewUrl(null); // ✅ reset every time dialog opens
     }
   }, [user, open]);
 
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: id === "enrollmentNo" ? value.toUpperCase() : value,
-    }));
-  };
+ const handleChange = (e) => {
+   const { id, value } = e.target;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+   setFormData((prev) => {
+     let updated = {
+       ...prev,
+       [id]: id === "enrollmentNo" ? value.toUpperCase() : value,
+     };
 
-    if (!job?._id) {
-      toast.error("Invalid job. Please refresh.");
-      return;
-    }
+     // ✅ Auto set department
+     if (id === "course") {
+       updated.department = COURSE_DEPT_MAP[value] || "";
+     }
+     if (id === "resumeLink") {
+       const preview = getPreviewLink(value);
+       setPreviewUrl(preview);
+     }
 
-    if (!formData.resumeLink.trim()) {
-      toast.error("Please provide your resume drive link");
-      return;
-    }
 
-    setShowConfirm(true);
-  };
+     return updated;
+   });
+ };
+
+
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  if (!job?._id) {
+    toast.error("Invalid job. Please refresh.");
+    return;
+  }
+
+  const link = formData.resumeLink.trim();
+
+  if (!link) {
+    toast.error("Please provide your resume drive link");
+    return;
+  }
+
+  if (!isValidURL(link)) {
+    toast.error("Enter a valid URL in resume link");
+    return;
+  }
+
+  if (!isValidDriveLink(link)) {
+    toast.error("Please enter a valid Google Drive link");
+    return;
+  }
+
+  setShowConfirm(true);
+};
+
 
   const handleConfirmApply = async () => {
     setLoading(true);
@@ -138,148 +204,160 @@ const ApplyJobDialog = ({ job, trigger }) => {
 
   return (
     <>
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || <Button size="sm">Apply</Button>}
-      </DialogTrigger>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          {trigger || <Button size="sm">Apply</Button>}
+        </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[520px]">
-        <DialogHeader>
-          <DialogTitle>Apply to {job?.companyName || job?.company}</DialogTitle>
-          <DialogDescription>
-            Applying for <b>{job?.role}</b>
-          </DialogDescription>
-        </DialogHeader>
+        <DialogContent className="sm:max-w-[580px] sm:max-h-[620px] overflow-scroll">
+          <DialogHeader>
+            <DialogTitle>
+              Apply to {job?.companyName || job?.company}
+            </DialogTitle>
+            <DialogDescription>
+              Applying for <b>{job?.role}</b>
+            </DialogDescription>
+          </DialogHeader>
+          <div className=" gap-5">
+            <form onSubmit={handleSubmit} className="space-y-4 w-[100%]">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Full Name</Label>
-              <Input
-                id="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+              <div>
+                <Label>Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Enrollment Number</Label>
+                <Input
+                  id="enrollmentNo"
+                  value={formData.enrollmentNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Course</Label>
+                <select
+                  id="course"
+                  value={formData.course}
+                  onChange={handleChange}
+                  className="w-full border rounded-md px-3 py-2"
+                  required
+                >
+                  <option value="">Select course</option>
+                  {COURSE_OPTIONS.map((course) => (
+                    <option key={course} value={course}>
+                      {course}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <Label>Department</Label>
+                <select
+                  id="department"
+                  value={formData.department}
+                  disabled
+                  className="w-full border rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
+                >
+                  <option value="">
+                    {formData.department || "Auto selected"}
+                  </option>
+                </select>
+              </div>
+              <div>
+                {previewUrl ? (
+                  <iframe src={previewUrl} className="w-full h-64" />
+                ) : (
+                  formData.resumeLink && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Invalid or unsupported link
+                    </p>
+                  )
+                )}
+              </div>
+              <div>
+                <Label>Resume Drive Link</Label>
+                <div className="relative">
+                  <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="https://drive.google.com/..."
+                    id="resumeLink"
+                    value={formData.resumeLink}
+                    onChange={handleChange}
+                    className="pl-9"
+                    required
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Review Application</Button>
+              </DialogFooter>
+            </form>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          <div>
-            <Label>Phone Number</Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label>Enrollment Number</Label>
-            <Input
-              id="enrollmentNo"
-              value={formData.enrollmentNo}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label>Course</Label>
-            <select
-              id="course"
-              value={formData.course}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2"
-              required
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Application</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to apply for the <b>{job?.role}</b> role at{" "}
+              <b>{job?.companyName || job?.company}</b>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmApply();
+              }}
+              disabled={loading}
             >
-              <option value="">Select course</option>
-              {COURSE_OPTIONS.map((course) => (
-                <option key={course} value={course}>
-                  {course}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label>Department</Label>
-            <select
-              id="department"
-              value={formData.department}
-              onChange={handleChange}
-              className="w-full border rounded-md px-3 py-2"
-              required
-            >
-              <option value="">Select department</option>
-              {DEPARTMENT_OPTIONS.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label>Resume Drive Link</Label>
-            <div className="relative">
-              <LinkIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="resumeLink"
-                value={formData.resumeLink}
-                onChange={handleChange}
-                className="pl-9"
-                required
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              Review Application
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-
-    <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Confirm Application</AlertDialogTitle>
-          <AlertDialogDescription>
-            Are you sure you want to apply for the <b>{job?.role}</b> role at{" "}
-            <b>{job?.companyName || job?.company}</b>?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={(e) => {
-              e.preventDefault();
-              handleConfirmApply();
-            }}
-            disabled={loading}
-          >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirm Apply
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirm Apply
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

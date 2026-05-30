@@ -23,118 +23,95 @@ const Hero = () => {
   }, []);
 
   const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-hero overflow-hidden pt-24 md:pt-32 pb-16 md:pb-20">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-28 pb-20 bg-gradient-to-br from-[#0f172a] via-[#020617] to-black text-white">
+      {/* Glow Background */}
+      <div className="absolute w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] top-[-100px] left-[-100px]" />
+      <div className="absolute w-[500px] h-[500px] bg-cyan-500/20 rounded-full blur-[120px] bottom-[-100px] right-[-100px]" />
 
-      {/* Gradient orbs */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse-subtle" />
-      <div
-        className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse-subtle"
-        style={{ animationDelay: "1.5s" }}
-      />
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
+      <div className="container mx-auto px-4 z-10">
+        <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-foreground/10 border border-primary-foreground/20 mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4 text-accent" />
-            <span className="text-sm text-primary-foreground/80">
-              Placement Season 2026 is Live
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md bg-white/10 border border-white/20 mb-6">
+            <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
+            <span className="text-base text-gray-300">
+              Placement Season 2026 
             </span>
           </div>
 
-          {/* Headline */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-tight mb-6 animate-fade-in-up">
-            Building Careers,
-            <br />
-            <span className="text-gradient">Shaping Futures</span>
+          {/* Heading */}
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight mb-6">
+            Building Careers <br />
+            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent animate-gradient">
+              Shaping Futures
+            </span>
           </h1>
 
-          {/* Subheadline */}
-          <p className="text-lg md:text-xl text-primary-foreground/70 max-w-2xl mx-auto mb-10 animate-fade-in-delay-1">
-            The Training & Placement Cell connects talented students with
-            industry-leading companies through comprehensive training programs
-            and placement opportunities.
+          {/* Sub text */}
+          <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
+            Connect with top companies, get trained, and land your dream job
+            through our smart placement system.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay-2">
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              variant="hero"
-              size="xl"
-              className="group"
+              size="lg"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:scale-105 transition-all"
               onClick={() => scrollToSection("trainings")}
             >
               Explore Opportunities
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <Button variant="heroOutline" size="xl" onClick={() => scrollToSection("companies")}>
-              View Upcoming Drives
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/20 text-black hover:text-white hover:bg-white/10"
+              onClick={() => scrollToSection("companies")}
+            >
+              View Drives
             </Button>
           </div>
 
-          {/* Stats row (DYNAMIC FROM BACKEND) */}
-          <div className="grid grid-cols-3 gap-8 mt-16 pt-16 border-t border-primary-foreground/10 animate-fade-in-delay-3">
+          {/* Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-16">
             {loading ? (
-              <div className="col-span-3 text-center text-primary-foreground/70">
-                Loading highlights...
-              </div>
+              <p className="col-span-3 text-gray-400">Loading...</p>
             ) : highlights ? (
               <>
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-primary-foreground mb-1">
+                <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:scale-105 transition">
+                  <h2 className="text-3xl font-bold text-white">
                     {highlights.studentsTrained}
-                  </div>
-                  <div className="text-sm text-primary-foreground/60">
-                    Students Trained
-                  </div>
+                  </h2>
+                  <p className="text-gray-400">Students Trained</p>
                 </div>
 
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-primary-foreground mb-1">
+                <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:scale-105 transition">
+                  <h2 className="text-3xl font-bold text-white">
                     {highlights.partnerCompanies}
-                  </div>
-                  <div className="text-sm text-primary-foreground/60">
-                    Partner Companies
-                  </div>
+                  </h2>
+                  <p className="text-gray-400">Companies</p>
                 </div>
 
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-accent mb-1">
+                <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:scale-105 transition">
+                  <h2 className="text-3xl font-bold text-pink-400">
                     {highlights.highestPackage}
-                  </div>
-                  <div className="text-sm text-primary-foreground/60">
-                    Highest Package
-                  </div>
+                  </h2>
+                  <p className="text-gray-400">Highest Package</p>
                 </div>
               </>
             ) : (
-              <div className="col-span-3 text-center text-primary-foreground/70">
+              <p className="col-span-3 text-gray-400">
                 No highlights available
-              </div>
+              </p>
             )}
           </div>
         </div>
       </div>
-
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 };

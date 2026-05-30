@@ -78,56 +78,82 @@ const AdminHighlights = () => {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSave} className="space-y-4">
-            <Input
-              name="studentsTrained"
-              placeholder="Students Trained (e.g. 1200+)"
-              value={formData.studentsTrained}
-              onChange={handleChange}
-              required
-            />
+          <form onSubmit={handleSave} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Students Trained */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Students Trained</label>
+                <Input
+                  name="studentsTrained"
+                  placeholder="e.g. 1200+"
+                  value={formData.studentsTrained}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            <Input
-              name="partnerCompanies"
-              placeholder="Partner Companies (e.g. 80+)"
-              value={formData.partnerCompanies}
-              onChange={handleChange}
-              required
-            />
+              {/* Partner Companies */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Partner Companies</label>
+                <Input
+                  name="partnerCompanies"
+                  placeholder="e.g. 80+"
+                  value={formData.partnerCompanies}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            <Input
-              name="placementRate"
-              placeholder="Placement Rate (e.g. 92%)"
-              value={formData.placementRate}
-              onChange={handleChange}
-              required
-            />
+              {/* Placement Rate */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Placement Rate</label>
+                <Input
+                  name="placementRate"
+                  placeholder="e.g. 92%"
+                  value={formData.placementRate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            <Input
-              name="highestPackage"
-              placeholder="Highest Package (e.g. 18 LPA)"
-              value={formData.highestPackage}
-              onChange={handleChange}
-              required
-            />
+              {/* Highest Package */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Highest Package</label>
+                <Input
+                  name="highestPackage"
+                  placeholder="e.g. 18 LPA"
+                  value={formData.highestPackage}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            <Input
-              name="averagePackage"
-              placeholder="Average Package (e.g. 6.5 LPA)"
-              value={formData.averagePackage}
-              onChange={handleChange}
-              required
-            />
+              {/* Average Package */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Average Package</label>
+                <Input
+                  name="averagePackage"
+                  placeholder="e.g. 6.5 LPA"
+                  value={formData.averagePackage}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            <Input
-              name="trainingPrograms"
-              placeholder="Training Programs (e.g. 25+)"
-              value={formData.trainingPrograms}
-              onChange={handleChange}
-              required
-            />
+              {/* Training Programs */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Training Programs</label>
+                <Input
+                  name="trainingPrograms"
+                  placeholder="e.g. 25+"
+                  value={formData.trainingPrograms}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
 
-            <Button type="submit" className="gap-2">
+            <Button type="submit" className="gap-2 w-full md:w-auto">
               <Save className="w-4 h-4" />
               Save Highlights
             </Button>

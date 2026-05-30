@@ -29,6 +29,7 @@ import Applications from "@/pages/admin/Applications";
 
 // ✅ IMPORTANT: Correct path for new file
 import AdminHighlights from "./pages/admin/Highlights";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -47,7 +48,9 @@ const App = () => (
             <Route path="/admin" element={<AdminLogin />} />
 
             {/* ===== PROTECTED STUDENT ROUTES ===== */}
-            <Route element={<ProtectedRoute allowedRoles={["user", "admin"]} />}>
+            <Route
+              element={<ProtectedRoute allowedRoles={["user", "admin"]} />}
+            >
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/student/edit-profile" element={<EditProfile />} />
               <Route path="/student/apply-job" element={<ApplyJob />} />
@@ -57,6 +60,7 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="students" element={<Students />} />
                 <Route path="companies" element={<AdminCompanies />} />
                 <Route path="placements" element={<AdminPlacements />} />

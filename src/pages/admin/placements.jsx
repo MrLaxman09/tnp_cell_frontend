@@ -33,6 +33,7 @@ const AdminPlacements = () => {
   const [placements, setPlacements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -143,11 +144,65 @@ const AdminPlacements = () => {
     }
   };
 
+  // ===== EXPORT PLACEMENTS TO CSV =====
+  const exportPlacementCsv = () => {
+    if (!filteredPlacements.length) {
+      alert("No placements to export.");
+      return;
+    }
+
+    const headers = [
+      "Student Name",
+      "Course",
+      "Company",
+      "Role",
+      "Package",
+      "Year",
+      "Location",
+      "Status",
+    ];
+
+    const rows = filteredPlacements.map((p) => [
+      p.studentName || "N/A",
+      p.course || "N/A",
+      p.company || "N/A",
+      p.role || "N/A",
+      p.package || "N/A",
+      p.year || "N/A",
+      p.location || "N/A",
+      p.status || "Confirmed",
+    ]);
+
+    const csvContent = [
+      headers.join(","), // header row
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")), // data rows
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "placements.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // ===== SEARCH FILTER =====
-  const filteredPlacements = placements.filter((p) =>
-    p.studentName.toLowerCase().includes(search.toLowerCase()) ||
-    p.company.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPlacements = placements.filter((p) => {
+    const searchText = search.toLowerCase();
+
+    const matchesSearch =
+      (p.studentName || "").toLowerCase().includes(searchText) ||
+      (p.company || "").toLowerCase().includes(searchText) ||
+      (p.role || "").toLowerCase().includes(searchText) ||
+      (p.location || "").toLowerCase().includes(searchText);
+
+    const matchesYear = !yearFilter || p.year?.toString().includes(yearFilter);
+
+    return matchesSearch && matchesYear;
+  });
 
   return (
     <div className="p-6 lg:p-8">
@@ -162,22 +217,34 @@ const AdminPlacements = () => {
           <Plus className="w-4 h-4" />
           Add Placement
         </Button>
+        <Button className="gap-2" onClick={exportPlacementCsv}>
+          <Download className="w-4 h-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* SEARCH */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by student or company..."
-              className="pl-10 h-10"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex gap-3 items-center mb-5">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search placements..."
+            className="pl-10 h-10"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Year Input */}
+        <Input
+          type="number"
+          placeholder="Year"
+          className="h-10 w-28"
+          value={yearFilter}
+          onChange={(e) => setYearFilter(e.target.value)}
+        />
+      </div>
 
       {/* CARD GRID */}
       {loading ? (
@@ -185,21 +252,23 @@ const AdminPlacements = () => {
       ) : filteredPlacements.length === 0 ? (
         <div className="text-center p-6">No placements found</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {filteredPlacements.map((p) => (
-            <Card key={p._id} className="overflow-hidden">
-              <img
-                src={
-                  p.photo ||
-                  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60"
-                }
-                alt={p.studentName}
-                className="w-full h-48 object-cover"
-              />
+            <Card key={p._id} className="overflow-hidden flex p-2">
+              <div>
+                <img
+                  src={
+                    p.photo ||
+                    "https://i.pinimg.com/736x/38/47/9c/38479c637a4ef9c5ced95ca66ffa2f41.jpg"
+                  }
+                  alt={p.studentName}
+                  className="md:w-48 md:h-48 mx-auto object-contain shadow-md shadow-green-600 md:rounded-full"
+                />
 
-              <CardHeader>
-                <CardTitle>{p.studentName}</CardTitle>
-              </CardHeader>
+                <CardHeader>
+                  <p className="md:text-xl">{p.studentName}</p>
+                </CardHeader>
+              </div>
 
               <CardContent className="space-y-2">
                 <p className="font-medium">{p.company}</p>
@@ -209,12 +278,8 @@ const AdminPlacements = () => {
                 <p className="text-sm text-muted-foreground">
                   Location: {p.location || "Bengaluru"}
                 </p>
-                <p className="font-semibold">
-                  Package: {p.package} LPA
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Year: {p.year}
-                </p>
+                <p className="font-semibold">Package: {p.package} LPA</p>
+                <p className="text-sm text-muted-foreground">Year: {p.year}</p>
 
                 <div className="flex gap-2 mt-3">
                   <Button
@@ -254,7 +319,12 @@ const AdminPlacements = () => {
               <CardTitle>
                 {editingId ? "Edit Placement" : "Add Placement"}
               </CardTitle>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsAddOpen(false)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setIsAddOpen(false)}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
@@ -367,9 +437,7 @@ const AdminPlacements = () => {
       {/* DELETE CONFIRMATION */}
       <AlertDialog
         open={!!placementToDelete}
-        onOpenChange={(open) =>
-          !open && setPlacementToDelete(null)
-        }
+        onOpenChange={(open) => !open && setPlacementToDelete(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -391,49 +459,81 @@ const AdminPlacements = () => {
       </AlertDialog>
 
       {/* VIEW DETAILS DIALOG */}
-      <Dialog open={!!viewPlacement} onOpenChange={(open) => !open && setViewPlacement(null)}>
+      <Dialog
+        open={!!viewPlacement}
+        onOpenChange={(open) => !open && setViewPlacement(null)}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Placement Details</DialogTitle>
           </DialogHeader>
-          
+
           {viewPlacement && (
             <div className="grid gap-4 py-4">
               <div className="flex justify-center mb-4">
-                 <img
-                  src={viewPlacement.photo || "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60"}
+                <img
+                  src={
+                    viewPlacement.photo ||
+                    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60"
+                  }
                   alt={viewPlacement.studentName}
                   className="w-32 h-32 rounded-full object-cover border-4 border-muted"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Student Name</p>
-                  <p className="text-sm font-semibold">{viewPlacement.studentName}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Student Name
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {viewPlacement.studentName}
+                  </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Course</p>
-                  <p className="text-sm font-semibold">{viewPlacement.course}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Course
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {viewPlacement.course}
+                  </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Company</p>
-                  <p className="text-sm font-semibold">{viewPlacement.company}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Company
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {viewPlacement.company}
+                  </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Package</p>
-                  <p className="text-sm font-semibold">{viewPlacement.package} LPA</p>
-                </div>
-                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Role</p>
-                  <p className="text-sm font-semibold">{viewPlacement.role || "N/A"}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Location</p>
-                  <p className="text-sm font-semibold">{viewPlacement.location || "N/A"}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Package
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {viewPlacement.package} LPA
+                  </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Year</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Role
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {viewPlacement.role || "N/A"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Location
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {viewPlacement.location || "N/A"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Year
+                  </p>
                   <p className="text-sm font-semibold">{viewPlacement.year}</p>
                 </div>
               </div>
@@ -443,6 +543,6 @@ const AdminPlacements = () => {
       </Dialog>
     </div>
   );
-};
+};;
 
 export default AdminPlacements;

@@ -7,6 +7,7 @@ import EditProfileDialog from "./EditProfile";
 import {
   User,
   Bell,
+  Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,9 @@ const StudentDashboard = () => {
   // Store only applied company IDs
   const [appliedCompanies, setAppliedCompanies] = useState([]);
   const [myApplications, setMyApplications] = useState([]);
+
+  // eligibleCourses: ["BCA", "BTech CSE", "BTech IT"];
+  // const isEligible = company.eligibleCourses?.includes(user?.course);
 
   const navigate = useNavigate();
 
@@ -73,7 +77,7 @@ const StudentDashboard = () => {
         const appliedIds = res.data.applications.map((app) =>
           typeof app.companyId === "string"
             ? app.companyId
-            : app.companyId?._id
+            : app.companyId?._id,
         );
 
         setAppliedCompanies(appliedIds);
@@ -113,6 +117,59 @@ const StudentDashboard = () => {
     );
   }
 
+  // ===== EXPORT DRIVES TO CSV =====
+  const exportDrivesCsv = () => {
+    if (!companies.length) {
+      alert("No drives to export.");
+      return;
+    }
+
+    const headers = [
+      "Company Name",
+      "Role",
+      "Job Type",
+      "Location",
+      "Package",
+      "Eligibility",
+      "Arrival Date",
+      "Last Date To Apply",
+      "Status",
+    ];
+
+    const rows = companies.map((c) => [
+      c.companyName || c.name || "N/A",
+      c.role || "N/A",
+      c.jobType || "N/A",
+      c.location || "N/A",
+      c.package || "N/A",
+      Array.isArray(c.eligibleCourses)
+        ? c.eligibleCourses.join(", ")
+        : c.eligibility || "N/A",
+      c.arrivalDate
+        ? new Date(c.arrivalDate).toLocaleDateString("en-GB")
+        : "N/A",
+      c.lastDateToApply
+        ? new Date(c.lastDateToApply).toLocaleDateString("en-GB")
+        : "N/A",
+      c.status || "Upcoming",
+    ]);
+
+    const csvContent = [
+      headers.join(","), // header row
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")), // data rows
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "upcoming_drives.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -137,8 +194,9 @@ const StudentDashboard = () => {
             <Card className="border border-border">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl">Upcoming Drives</CardTitle>
-                <Button variant="ghost" size="sm">
-                  View All
+                <Button className="gap-2 border-2 shadow-md" variant="ghost" size="sm" onClick={exportDrivesCsv}>
+                  <Download className="w-4 h-4" />
+                  Export CSV
                 </Button>
               </CardHeader>
 
@@ -163,10 +221,11 @@ const StudentDashboard = () => {
 
                   const isApplied = appliedCompanies.includes(company._id);
                   const application = isApplied
-                    ? myApplications.find((app) =>
-                        (typeof app.companyId === "string"
-                          ? app.companyId
-                          : app.companyId?._id) === company._id
+                    ? myApplications.find(
+                        (app) =>
+                          (typeof app.companyId === "string"
+                            ? app.companyId
+                            : app.companyId?._id) === company._id,
                       )
                     : null;
 
@@ -193,17 +252,14 @@ const StudentDashboard = () => {
                         {isApplied ? (
                           <Badge variant="secondary">Applied</Badge>
                         ) : (
-                          <>
-                            <Badge variant="default">Eligible</Badge>
-                            <ApplyJobDialog
-                              job={{
-                                _id: company._id,
-                                company: companyName,
-                                role: company.role,
-                                date: company.arrivalDate,
-                              }}
-                            />
-                          </>
+                          <ApplyJobDialog
+                            job={{
+                              _id: company._id,
+                              company: companyName,
+                              role: company.role,
+                              date: company.arrivalDate,
+                            }}
+                          />
                         )}
                       </div>
                     </div>
@@ -224,9 +280,7 @@ const StudentDashboard = () => {
                   <User className="w-10 h-10 text-primary" />
                 </div>
 
-                <h3 className="font-bold text-lg">
-                  {user?.name || "Student"}
-                </h3>
+                <h3 className="font-bold text-lg">{user?.name || "Student"}</h3>
 
                 <p className="text-sm text-muted-foreground mb-4">
                   {user?.course || "Course not set"} • Final Year
@@ -259,13 +313,22 @@ const StudentDashboard = () => {
                     </p>
                   ) : (
                     notifications.map((n, i) => (
-                      <div key={i} className="flex gap-3 items-start pb-3 border-b border-border/50 last:border-0 last:pb-0">
-                        <div className={`w-2 h-2 mt-2 rounded-full ${n.type === 'drive' ? 'bg-blue-500' : 'bg-green-500'}`} />
+                      <div
+                        key={i}
+                        className="flex gap-3 items-start pb-3 border-b border-border/50 last:border-0 last:pb-0"
+                      >
+                        <div
+                          className={`w-2 h-2 mt-2 rounded-full ${n.type === "drive" ? "bg-blue-500" : "bg-green-500"}`}
+                        />
                         <div>
                           <p className="text-sm font-medium">{n.title}</p>
-                          <p className="text-xs text-muted-foreground">{n.desc}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {n.desc}
+                          </p>
                           <p className="text-[10px] text-muted-foreground mt-1">
-                            {n.date ? new Date(n.date).toLocaleDateString() : "Just now"}
+                            {n.date
+                              ? new Date(n.date).toLocaleDateString()
+                              : "Just now"}
                           </p>
                         </div>
                       </div>
@@ -279,6 +342,6 @@ const StudentDashboard = () => {
       </main>
     </div>
   );
-};
+};;
 
 export default StudentDashboard;

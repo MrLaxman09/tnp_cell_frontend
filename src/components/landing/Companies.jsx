@@ -64,7 +64,7 @@ const Companies = () => {
             </p>
           ) : (
             companies.map((company) => {
-              const companyName = company.name || "Unknown Company";
+              const companyName = company.companyName || "Unknown Company";
 
               return (
                 <div

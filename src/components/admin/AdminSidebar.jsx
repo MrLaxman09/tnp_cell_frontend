@@ -12,6 +12,7 @@ import {
   Menu,
   Trophy,
   X,
+  BarChart3,
 } from "lucide-react";
 import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
+  { icon: BarChart3, label: "Analytics", path: "/admin/analytics" },
   { icon: Users, label: "Students", path: "/admin/students" },
   {
     icon: FileText,
@@ -29,7 +31,7 @@ const menuItems = [
   { icon: Briefcase, label: "Placements", path: "/admin/placements" },
   { icon: BookOpen, label: "Trainings", path: "/admin/trainings" },
   { icon: Trophy, label: "Highlights", path: "/admin/highlights" },
-  { icon: FileText, label: "Reports", path: "/admin/reports" },
+  { icon: FileText, label: "Enquery", path: "/admin/reports" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];
 
@@ -177,7 +179,7 @@ const AdminSidebar = ({ collapsed, onToggle, isOpen, onClose }) => {
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
           >
             <LogOut className="w-5 h-5 shrink-0" />
-            <span className="text-sm font-medium">Logout</span>
+            <span className="text-sm font-medium">Back</span>
           </RouterNavLink>
         </div>
       </aside>

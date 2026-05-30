@@ -215,9 +215,24 @@ const AdminTrainings = () => {
   };
 
   // ===== SEARCH =====
-  const filteredTrainings = trainings.filter((t) =>
-    (t.title || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTrainings = trainings.filter((t) => {
+    const searchText = search.toLowerCase();
+
+    return Object.values({
+      title: t.title,
+      category: t.category,
+      department: t.department,
+      instructor: t.instructor,
+      date: t.date,
+      duration: t.duration,
+      status: t.status,
+      platform: t.platform,
+      meetingLink: t.meetingLink,
+    }).some((value) =>
+      (value || "").toString().toLowerCase().includes(searchText),
+    );
+  });
+
 
   // ===== PAGINATION =====
   const indexOfLastItem = currentPage * itemsPerPage;

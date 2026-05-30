@@ -44,6 +44,10 @@ const AdminReports = () => {
   const [reports, setReports] = useState([]);
   const [search, setSearch] = useState("");
   const [deleteItem, setDeleteItem] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+
 
   /* FETCH CONTACTS */
   const fetchContacts = async () => {
@@ -69,12 +73,22 @@ const AdminReports = () => {
   };
 
   /* SEARCH FILTER */
-  const filtered = reports.filter(
-    (r) =>
-      r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.email.toLowerCase().includes(search.toLowerCase()) ||
-      r.subject.toLowerCase().includes(search.toLowerCase()),
-  );
+const filtered = reports.filter((r) => {
+  const searchText = search.toLowerCase();
+
+  const matchesSearch =
+    (r.name || "").toLowerCase().includes(searchText) ||
+    (r.email || "").toLowerCase().includes(searchText) ||
+    (r.subject || "").toLowerCase().includes(searchText);
+
+  const matchesStatus =
+    statusFilter === "all" ||
+    (statusFilter === "read" && r.isRead) ||
+    (statusFilter === "unread" && !r.isRead);
+
+  return matchesSearch && matchesStatus;
+});
+
 
   /* EXPORT CSV */
   const handleExportCSV = () => {
@@ -128,10 +142,15 @@ const AdminReports = () => {
             />
           </div>
 
-          <Button variant="outline">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
+          <select
+            className="border rounded-md px-3 h-10 text-sm"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="read">Read</option>
+            <option value="unread">Unread</option>
+          </select>
 
           <Button variant="outline" onClick={handleExportCSV}>
             <Download className="w-4 h-4 mr-2" />
@@ -197,12 +216,11 @@ const AdminReports = () => {
                       </DropdownMenuTrigger>
 
                       <DropdownMenuContent align="end">
-                        {!r.isRead && (
-                          <DropdownMenuItem onClick={() => markAsRead(r._id)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Mark as Read
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onClick={() => setViewItem(r)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Message
+                        </DropdownMenuItem>
+
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setDeleteItem(r)}
@@ -225,6 +243,54 @@ const AdminReports = () => {
               )}
             </TableBody>
           </Table>
+          <AlertDialog open={!!viewItem}>
+            <AlertDialogContent className="max-w-lg">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Message Details</AlertDialogTitle>
+              </AlertDialogHeader>
+
+              {viewItem && (
+                <div className="space-y-3 text-sm">
+                  <p>
+                    <b>Name:</b> {viewItem.name}
+                  </p>
+                  <p>
+                    <b>Email:</b> {viewItem.email}
+                  </p>
+                  <p>
+                    <b>Subject:</b> {viewItem.subject}
+                  </p>
+                  <p>
+                    <b>Date:</b> {new Date(viewItem.createdAt).toLocaleString()}
+                  </p>
+
+                  <div>
+                    <b>Message:</b>
+                    <p className="mt-1 p-3 bg-muted rounded-md whitespace-pre-line">
+                      {viewItem.message}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setViewItem(null)}>
+                  Close
+                </AlertDialogCancel>
+
+                {!viewItem?.isRead && (
+                  <AlertDialogAction
+                    onClick={() => {
+                      markAsRead(viewItem._id);
+                      setViewItem(null);
+                    }}
+                  >
+                    Mark as Read
+                  </AlertDialogAction>
+                )}
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
 
