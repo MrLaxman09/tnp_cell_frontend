@@ -123,7 +123,9 @@ const Companies = () => {
                     </span>
                     <span className="font-semibold text-accent">
                       {company.package
-                        ? `${company.package} LPA`
+                        ? company.package.toUpperCase().includes("LPA")
+                          ? company.package
+                          : `${company.package} LPA`
                         : "N/A"}
                     </span>
                   </div>

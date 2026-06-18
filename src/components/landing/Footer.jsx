@@ -36,12 +36,14 @@
                  <GraduationCap className="w-5 h-5 text-primary-foreground" />
                </div>
                <div>
-                 <span className="font-semibold text-foreground">RKDF University Training & Placement Cell</span>
+                 <span className="font-semibold text-foreground">
+                   RKDF University Training & Placement Cell
+                 </span>
                </div>
              </div>
              <p className="text-muted-foreground text-sm max-w-md mb-6">
-               Dedicated to bridging the gap between academia and industry, 
-               we prepare students for successful careers through comprehensive 
+               Dedicated to bridging the gap between academia and industry, we
+               prepare students for successful careers through comprehensive
                training and strategic placement initiatives.
              </p>
              <div className="space-y-2">
@@ -59,41 +61,107 @@
                </div>
              </div>
            </div>
- 
+
            {/* Quick Links */}
            <div>
              <h4 className="font-semibold text-foreground mb-4">Quick Links</h4>
              <ul className="space-y-2">
-               <li><a href="#about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About Us</a></li>
-               <li><a href="#companies" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Companies</a></li>
-               <li><a href="#trainings" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Trainings</a></li>
-               <li><a href="#highlights" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Highlights</a></li>
-               <li><a href="#contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact Us</a></li>
+               <li>
+                 <a
+                   href="#about"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   About Us
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#companies"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   Companies
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#trainings"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   Trainings
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#highlights"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   Highlights
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#contact"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   Contact Us
+                 </a>
+               </li>
              </ul>
            </div>
- 
+
            {/* For Students */}
            <div>
-             <h4 className="font-semibold text-foreground mb-4">For Students</h4>
+             <h4 className="font-semibold text-foreground mb-4">
+               For Students
+             </h4>
              <ul className="space-y-2">
-               <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Student Portal</a></li>
-               <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Placement Guidelines</a></li>
-               <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Resources</a></li>
-               <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQs</a></li>
+               <li>
+                 <a
+                   href="#"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   Student Portal
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   Placement Guidelines
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   Resources
+                 </a>
+               </li>
+               <li>
+                 <a
+                   href="#"
+                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                 >
+                   FAQs
+                 </a>
+               </li>
              </ul>
            </div>
          </div>
- 
+
          <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
            <p className="text-sm text-muted-foreground">
-             © 2025 Training & Placement Cell. All rights reserved.
+             © {new Date().getFullYear()} Training & Placement Cell. All rights
+             reserved.
            </p>
            <p className="text-sm text-muted-foreground">
              Made for the success of students of RKDFuniversity.
            </p>
          </div>
        </div>
- 
+
        {showTopBtn && (
          <Button
            className="fixed bottom-8 right-8 z-50 rounded-full shadow-lg animate-in fade-in zoom-in duration-300"
